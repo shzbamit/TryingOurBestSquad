@@ -25,6 +25,38 @@ int sandwich[SANDWICH_SIZE] = { 0, 0, 0, 0, 0}; // for storing which ingredient 
 char sandwich_ingredients[5][20] = { "Bread", "Tomato", "Lettuce", "Cheese", "Ham" };
 int randomOrder[SANDWICH_SIZE] = { 0, 0, 0, 0, 0 };
 
+void GenerateRandomOrder(void)
+{
+	int min = 1;
+	int max = 4; 
+
+	for (int i = 0; i < SANDWICH_SIZE; i++)
+	{
+		if (i == 0 || i == SANDWICH_SIZE - 1) {
+			randomOrder[i] = 0;
+		}
+		else {
+			randomOrder[i] = (rand() % (max - min + 1)) + min; 
+		}
+	}
+}
+
+int CheckSandwich(void)
+{
+	if (sandwichOrder != SANDWICH_SIZE)
+	{
+		return 0;
+	}
+	for (int i = 0; i < SANDWICH_SIZE; i++)
+	{
+		if (sandwich[i] != randomOrder[i])
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+
 void Game_Init(void)
 {
 	// Load Assets
@@ -76,37 +108,47 @@ void Game_Update(void)
 	}
 
 	// Controls
-	if (CP_Input_KeyTriggered(KEY_B)) // B for bread
+	if (sandwichOrder < SANDWICH_SIZE)
 	{
-		sandwich[sandwichOrder] = 0;
-		sandwichOrder++;
+		if (CP_Input_KeyTriggered(KEY_B)) // B for bread
+		{
+			sandwich[sandwichOrder] = 0;
+			sandwichOrder++;
+		}
+		if (CP_Input_KeyTriggered(KEY_T)) // T for tomato
+		{
+			sandwich[sandwichOrder] = 1;
+			sandwichOrder++;
+		}
+		if (CP_Input_KeyTriggered(KEY_L)) // L for lettuce
+		{
+			sandwich[sandwichOrder] = 2;
+			sandwichOrder++;
+		}
+		if (CP_Input_KeyTriggered(KEY_C)) // C for cheese
+		{
+			sandwich[sandwichOrder] = 3;
+			sandwichOrder++;
+		}
+		if (CP_Input_KeyTriggered(KEY_H)) // H for ham
+		{
+			sandwich[sandwichOrder] = 4;
+			sandwichOrder++;
+		}
 	}
-	if (CP_Input_KeyTriggered(KEY_T)) // T for tomato
-	{
-		sandwich[sandwichOrder] = 1;
-		sandwichOrder++;
-	}
-	if (CP_Input_KeyTriggered(KEY_L)) // L for lettuce
-	{
-		sandwich[sandwichOrder] = 2;
-		sandwichOrder++;
-	}
-	if (CP_Input_KeyTriggered(KEY_C)) // C for cheese
-	{
-		sandwich[sandwichOrder] = 3;
-		sandwichOrder++;
-	}
-	if (CP_Input_KeyTriggered(KEY_H)) // H for ham
-	{
-		sandwich[sandwichOrder] = 4;
-		sandwichOrder++;
-	}
+	
 	if (CP_Input_KeyTriggered(KEY_BACKSPACE)) // Remove ingredient
 	{
 		sandwichOrder--;
 	}
 
 	sandwichOrder = CP_Math_ClampInt(sandwichOrder, 0, SANDWICH_SIZE); // This clamps sandwich size to SANDWICH_SIZE
+
+	if (CheckSandwich())
+	{
+		sandwichOrder = 0;
+		GenerateRandomOrder();
+	}
 
 	for (int i = 0; i < sandwichOrder; i++) // Render Work in Progress sandwich 
 	{
