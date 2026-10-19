@@ -104,7 +104,8 @@ void Game_Update(void)
 
 	for (int i = 0; i < SANDWICH_SIZE; i++)
 	{
-		CP_Font_DrawText(sandwich_ingredients[randomOrder[i]], 100.0f, 150.0f + i * 40.0f);
+		CP_Image_Draw(ingredients[randomOrder[i]], 100.0f, 150.0f + i * 70.0f, 50.0f, 50.0f, 255);
+		CP_Font_DrawText(sandwich_ingredients[randomOrder[i]], 100.0f, 150.0f + i * 70.0f);
 	}
 
 	// Controls
