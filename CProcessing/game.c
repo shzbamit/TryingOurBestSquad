@@ -12,7 +12,7 @@ CP_Font myFont;
 struct Ingredient
 {
 	int itemID;
-	char name;
+	const char* name;
 	CP_Image asset;
 	CP_KEY keybind;
 };
@@ -38,6 +38,8 @@ char scoreText[12];
 #define SCORE_ORDER 100 // For completing orders
 
 #define SCORE_REMOVE_INGREDIENT 5 // For discarding ingredients
+#define CUSTOMER_PATIENCE 15.0F // seconds the front customer will wait
+#define SCORE_CUSTOMER_LEFT 20 // points lost when a customer leaves 
 
 // Timer
 int total_seconds = 300; // 5 minutes
@@ -62,6 +64,7 @@ struct Customer
 	float width;
 	float height;
 	int orderCompleted;
+	float patience;
 };
 struct Customer customers[MAX_CUSTOMERS];
 CP_Image customerAssets[NUM_CHARACTER_ASSETS];
@@ -112,7 +115,7 @@ void UpdateCustomerPositions(void)
 	{
 		customers[i].position = i;
 
-		customers[i].x = 650.0f + (i * 250.0f);
+		customers[i].x = 450.0f + (i * 240.0f);
 		customers[i].y = 400.0f;
 
 		customers[i].width = 180.0f;
@@ -154,6 +157,7 @@ void SpawnInitialCustomers(void)
 		GenerateRandomOrder(customers[i].order);
 
 		customers[i].orderCompleted = 0;
+		customers[i].patience = CUSTOMER_PATIENCE;
 	}
 
 	UpdateCustomerPositions();
@@ -213,7 +217,7 @@ void Game_Update(void)
 
 	// Dependencies
 	CP_Image ingredients[SANDWICH_SIZE] = { bread.asset, tomato.asset, lettuce.asset, cheese.asset, ham.asset }; // array for storing the ref to actual ingredient images
-	char sandwich_ingredients[5][20] = { bread.name, tomato.name, lettuce.name, cheese.name, ham.name };
+	const char* sandwich_ingredients[5] = { bread.name, tomato.name, lettuce.name, cheese.name, ham.name };
 
 	// Render game assets here ==========================================================================================================
 
@@ -223,6 +227,7 @@ void Game_Update(void)
 		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 		CP_Settings_TextSize(30.0f);
 		CP_Font_Set(myFont);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BASELINE);
 
 		CP_Font_DrawText("Customer Order:", 100.0f, 100.0f);
 
@@ -276,6 +281,25 @@ void Game_Update(void)
 			customers[i].height,
 			255
 		);
+
+		// Patience timer bar above the customer 
+		if (customers[i].x + customers[i].width / 2.0f <= (float)CP_System_GetWindowWidth())
+		{
+			float ratio = customers[i].patience / CUSTOMER_PATIENCE;
+			float barWidth = customers[i].width;
+			float barHeight = 15.0f;
+			float barX = customers[i].x - barWidth / 2.0f;
+			float barY = customers[i].y - customers[i].height / 2.0f - 25.0f;
+
+			CP_Settings_RectMode(CP_POSITION_CORNER);
+			CP_Settings_NoStroke();
+
+			CP_Settings_Fill(CP_Color_Create(200, 200, 200, 255));
+			CP_Graphics_DrawRect(barX, barY, barWidth, barHeight);
+
+			CP_Settings_Fill(CP_Color_Create((int)(255 * (1.0f - ratio)), (int)(200 * ratio), 0, 255));
+			CP_Graphics_DrawRect(barX, barY, barWidth * ratio, barHeight);
+		}
 	}
 
 	// End of asset renders =====================================================================================================================
@@ -331,6 +355,18 @@ void Game_Update(void)
 	{
 		score += SCORE_ORDER;
 		CompleteFrontCustomer();
+	}
+
+		// Patience countdown (only the front customer is being served)
+	if (customerCount > 0)
+	{
+		customers[0].patience -= CP_System_GetDt();
+
+		if (customers[0].patience <= 0.0f)
+		{
+			score -= SCORE_CUSTOMER_LEFT;
+			CompleteFrontCustomer(); // removes them and clears the sandwich in progress
+		}
 	}
 
 	snprintf(scoreText, sizeof(scoreText), "%d", score); // Converts score int to char
