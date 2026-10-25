@@ -52,7 +52,7 @@ clock_t next_tick;
 
 // Customer
 #define MAX_CUSTOMERS 50
-#define NUM_CHARACTER_ASSETS 6
+#define NUM_CHARACTER_ASSETS 9
 
 struct Customer
 {
@@ -198,6 +198,9 @@ void Game_Init(void)
 	customerAssets[3] = CP_Image_Load("Assets/Character 4.png");
 	customerAssets[4] = CP_Image_Load("Assets/Character 5.png");
 	customerAssets[5] = CP_Image_Load("Assets/Character 6.png");
+	customerAssets[6] = CP_Image_Load("Assets/Character 7.png");
+	customerAssets[7] = CP_Image_Load("Assets/Character 8.png");
+	customerAssets[8] = CP_Image_Load("Assets/Character 9.png");
 
 	myFont = CP_Font_Load("Assets/Exo2-Regular.ttf");
 
