@@ -39,7 +39,7 @@ char scoreText[12];
 
 #define SCORE_REMOVE_INGREDIENT 5 // For discarding ingredients
 #define CUSTOMER_PATIENCE 15.0F // seconds the front customer will wait
-#define SCORE_CUSTOMER_LEFT 20 // points lost when a customer leaves 
+#define SCORE_CUSTOMER_LEFT 10 // points lost when a customer leaves 
 
 // Timer
 int total_seconds = 300; // 5 minutes
@@ -300,7 +300,7 @@ void Game_Update(void)
 			CP_Settings_Fill(CP_Color_Create(200, 200, 200, 255));
 			CP_Graphics_DrawRect(barX, barY, barWidth, barHeight);
 
-			CP_Settings_Fill(CP_Color_Create((int)(255 * (1.0f - ratio)), (int)(200 * ratio), 0, 255));
+			CP_Settings_Fill(CP_Color_Create(0, 200, 0, 255)); // green
 			CP_Graphics_DrawRect(barX, barY, barWidth * ratio, barHeight);
 		}
 	}
