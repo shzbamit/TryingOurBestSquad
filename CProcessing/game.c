@@ -5,6 +5,7 @@
 #include "cprocessing.h"
 #include "game.h"
 #include "math.h"
+#include "animations.h"
 
 // Assets
 CP_Font myFont;
@@ -32,8 +33,13 @@ struct Ingredient ham;
 int sandwichOrder = 0; // order in which sandwich will be drawn
 int sandwich[SANDWICH_SIZE] = { 0, 0, 0, 0, 0}; // for storing which ingredient value
 
+// Animations
+#define CUSTOMER_MOVE_SPEED 5.0f
+
 // Score
 int score = 0;
+// This tracks when the score is updated by comparing lastScore to score
+int lastScore = -1;
 char scoreText[12];
 #define SCORE_ORDER 100 // For completing orders
 
@@ -65,12 +71,31 @@ struct Customer
 	float height;
 	int orderCompleted;
 	float patience;
+	float animationProgress; // Set to 0.0f under spawn initial customers, used as animation tracker
+	CP_Vector startPos;      // Remembers where the customer started moving from
+	CP_Vector targetPos;     // Remembers where the customer is moving to
+	int isLeaving;			 // 1 if customer is currently exiting. This is for the leaving animation
 };
 struct Customer customers[MAX_CUSTOMERS];
 CP_Image customerAssets[NUM_CHARACTER_ASSETS];
 int customerCount = 0;
 
-void GenerateRandomOrder(int order[])
+// For leaving customers
+struct Customer leavingCustomers[MAX_CUSTOMERS];
+int leavingCustomerCount = 0;
+
+
+// Array cleaner
+static void ShiftCustomerArray(struct Customer arr[], int* count, int indexToRemove)
+{
+	for (int i = indexToRemove; i < (*count) - 1; i++)
+	{
+		arr[i] = arr[i + 1];
+	}
+	(*count)--;
+}
+
+static void GenerateRandomOrder(int order[])
 {
 	int min = 1;
 	int max = 4; 
@@ -86,7 +111,7 @@ void GenerateRandomOrder(int order[])
 	}
 }
 
-int CheckSandwich(void)
+static int CheckSandwich(void)
 {
 	if (customerCount == 0)
 	{
@@ -109,43 +134,46 @@ int CheckSandwich(void)
 	return 1;
 }
 
-void UpdateCustomerPositions(void)
+static void UpdateCustomerPositions(void)
 {
-	for (int i = 0; i < customerCount; i++)
+	for (int i = 0; i < customerCount; i++) // i checks all customers (both leaving and waiting state customers)
 	{
+
 		customers[i].position = i;
 
-		customers[i].x = 450.0f + (i * 240.0f);
-		customers[i].y = 400.0f;
+		// Set coordinates for moving animation
+		customers[i].startPos = CP_Vector_Set(customers[i].x, customers[i].y);
+		customers[i].targetPos = CP_Vector_Set(450.0f + (i * 240.0f), 400.0f);
+		customers[i].animationProgress = 0.0f; // Set animation progress at 0%
 
 		customers[i].width = 180.0f;
 		customers[i].height = 220.0f;
 	}
 }
 
-void CompleteFrontCustomer(void)
+static void CompleteFrontCustomer(void)
 {
-	if (customerCount == 0)
-	{
-		return;
-	}
+	if (customerCount == 0) return;
 
-	customers[0].orderCompleted = 1;
+	// Copy the front customer into the leaving array
+	leavingCustomers[leavingCustomerCount] = customers[0];
 
-	// Remove the front customer after completed order
-	for (int i = 0; i < customerCount - 1; i++)
-	{
-		customers[i] = customers[i + 1];
-	}
+	// Set up their exit path
+	leavingCustomers[leavingCustomerCount].startPos = CP_Vector_Set(customers[0].x, customers[0].y);
+	leavingCustomers[leavingCustomerCount].targetPos = CP_Vector_Set(customers[0].x, -100.0f); // Move up off-screen
+	leavingCustomers[leavingCustomerCount].animationProgress = 0.0f;
+	leavingCustomers[leavingCustomerCount].isLeaving = 1;
+	leavingCustomerCount++;
 
-	customerCount--;
-
+	// Shift the main queue immediately so the next customer takes over index 0
+	ShiftCustomerArray(customers, &customerCount, 0);
 	sandwichOrder = 0;
 
+	// Tell the remaining active line queue to slide forward step slots
 	UpdateCustomerPositions();
 }
 
-void SpawnInitialCustomers(void)
+static void SpawnInitialCustomers(void)
 {
 	customerCount = MAX_CUSTOMERS;
 
@@ -157,7 +185,13 @@ void SpawnInitialCustomers(void)
 		GenerateRandomOrder(customers[i].order);
 
 		customers[i].orderCompleted = 0;
+		customers[i].isLeaving = 0;
 		customers[i].patience = CUSTOMER_PATIENCE;
+		customers[i].animationProgress = 0.0f; // Set animation progress to 0. This variable is used to track individual animation progress.
+
+		// Initial spawn coordinates
+		customers[i].x = 1900.0f;
+		customers[i].y = 400.0f;
 	}
 
 	UpdateCustomerPositions();
@@ -219,8 +253,22 @@ void Game_Update(void)
 	CP_Graphics_ClearBackground(BG_COLOUR); // Don't move this, this is for clearing the canvas at the start of every update
 
 	// Dependencies
-	CP_Image ingredients[SANDWICH_SIZE] = { bread.asset, tomato.asset, lettuce.asset, cheese.asset, ham.asset }; // array for storing the ref to actual ingredient images
-	const char* sandwich_ingredients[5] = { bread.name, tomato.name, lettuce.name, cheese.name, ham.name };
+	static CP_Image ingredients[SANDWICH_SIZE];// array for storing the ref to actual ingredient images
+	static const char* sandwich_ingredients[5];
+	static int arrays_initialized = 0;
+
+	if (!arrays_initialized) // initializes the arrays only once
+	{
+		ingredients[0] = bread.asset; ingredients[1] = tomato.asset;
+		ingredients[2] = lettuce.asset; ingredients[3] = cheese.asset;
+		ingredients[4] = ham.asset;
+
+		sandwich_ingredients[0] = bread.name; sandwich_ingredients[1] = tomato.name;
+		sandwich_ingredients[2] = lettuce.name; sandwich_ingredients[3] = cheese.name;
+		sandwich_ingredients[4] = ham.name;
+
+		arrays_initialized = 1;
+	}
 
 	// Render game assets here ==========================================================================================================
 
@@ -255,8 +303,6 @@ void Game_Update(void)
 		}
 	}
 
-	//CP_Image_Draw(pbread, (float)CP_System_GetWindowWidth() / 5.0f, (float)CP_System_GetWindowHeight() / 2.0f, 200.0f, 200.0f, 255);
-
 	// Score text
 	CP_Settings_Fill(SCORE_TEXT_COLOR);
 	CP_Settings_TextSize(SCORE_TEXT_SIZE);
@@ -267,15 +313,31 @@ void Game_Update(void)
 	// Timer text
 	CP_Font_DrawText(timerText, 1450.0f, 100.0f);
 
+	// Calculate once before the loop begins
+	float centerX = (float)CP_System_GetWindowWidth() / 2.0f;
+	float centerYBase = (float)CP_System_GetWindowHeight() * 0.75f;
+
 	// Render sandwich 
 	for (int i = 0; i < sandwichOrder; i++)
 	{
-		CP_Image_Draw(ingredients[sandwich[i]], (float)CP_System_GetWindowWidth() / 2.0f, (float)CP_System_GetWindowHeight() * 0.75f - (20.0f * i), 200.0f, 200.0f, 255);
+		CP_Image_Draw(ingredients[sandwich[i]], centerX, centerYBase - (20.0f * i), 200.0f, 200.0f, 255);
 	}
 
 	// Draw customers in the queue
 	for (int i = 0; i < customerCount; i++)
 	{
+		// Interpolate coordinates via your custom function
+		CP_Vector positionFrame = MoveImage(
+			CUSTOMER_MOVE_SPEED * CP_System_GetDt(),
+			customers[i].startPos,
+			customers[i].targetPos,
+			&customers[i].animationProgress
+		);
+
+		// Store frame updates so downstream math remains fully synced
+		customers[i].x = positionFrame.x;
+		customers[i].y = positionFrame.y;
+
 		CP_Image_Draw(
 			customers[i].asset,
 			customers[i].x,
@@ -286,7 +348,7 @@ void Game_Update(void)
 		);
 
 		// Patience timer bar above the customer 
-		if (customers[i].x + customers[i].width / 2.0f <= (float)CP_System_GetWindowWidth())
+		if (!customers[i].isLeaving && customers[i].x + customers[i].width / 2.0f <= (float)CP_System_GetWindowWidth())
 		{
 			float ratio = customers[i].patience / CUSTOMER_PATIENCE;
 			float barWidth = customers[i].width;
@@ -305,8 +367,26 @@ void Game_Update(void)
 		}
 	}
 
-	// End of asset renders =====================================================================================================================
+	// If a customer finished their animation path and was marked as leaving, erase them from memory
+	for (int i = 0; i < leavingCustomerCount; i++)
+	{
+		// Animate leaving progress independent of queue steps
+		CP_Vector positionFrame = MoveImage(CUSTOMER_MOVE_SPEED * CP_System_GetDt(), leavingCustomers[i].startPos, leavingCustomers[i].targetPos, &leavingCustomers[i].animationProgress);
+		leavingCustomers[i].x = positionFrame.x;
+		leavingCustomers[i].y = positionFrame.y;
 
+		// Draw the walking-away customer (No patience bar drawn here!)
+		CP_Image_Draw(leavingCustomers[i].asset, leavingCustomers[i].x, leavingCustomers[i].y, leavingCustomers[i].width, leavingCustomers[i].height, 255);
+
+		// Clean them up once they completely vanish off screen
+		if (leavingCustomers[i].animationProgress >= 1.0f)
+		{
+			ShiftCustomerArray(leavingCustomers, &leavingCustomerCount, i);
+			i--;
+		}
+	}
+
+	// End of asset renders =====================================================================================================================
 
 	// Controls
 	if (customerCount > 0 && sandwichOrder < SANDWICH_SIZE)
@@ -372,7 +452,12 @@ void Game_Update(void)
 		}
 	}
 
-	snprintf(scoreText, sizeof(scoreText), "%d", score); // Converts score int to char
+	// This only updates when score is changed
+	if (score != lastScore) 
+	{
+		snprintf(scoreText, sizeof(scoreText), "%d", score); // Converts score int to char
+		lastScore = score;
+	}
 
 	// Timer check
 	if (clock() >= next_tick && total_seconds >= 0)
