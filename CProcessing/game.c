@@ -7,52 +7,36 @@
 #include "game.h"
 #include "math.h"
 #include "animations.h"
+#include "ingredients.h"
 
 // Assets
 CP_Font myFont;
 
-struct Ingredient
-{
-	int itemID;
-	const char* name;
-	CP_Image asset;
-	CP_KEY keybind;
-};
-struct Ingredient bread;
-struct Ingredient tomato;
-struct Ingredient lettuce;
-struct Ingredient cheese;
-struct Ingredient ham;
-
 // Colours
-#define BG_COLOUR CP_Color_Create(247, 252, 252, 255) // Background
-#define SCORE_TEXT_COLOR CP_Color_Create(128, 128, 128, 255) 
+#define BG_COLOUR				CP_Color_Create(247, 252, 252, 255) // Background
+#define SCORE_TEXT_COLOR		CP_Color_Create(128, 128, 128, 255) 
 
-#define SCORE_TEXT_SIZE 100.0f
-#define SANDWICH_SIZE 5
+#define SCORE_TEXT_SIZE			100.0f
+#define SANDWICH_SIZE			5
 
-int sandwichOrder = 0; // order in which sandwich will be drawn
+int sandwichOrder = 0;					// order in which sandwich will be drawn
 int sandwich[SANDWICH_SIZE] = { 0, 0, 0, 0, 0}; // for storing which ingredient value
 
 // Animations
-#define CUSTOMER_MOVE_SPEED 5.0f
+#define CUSTOMER_MOVE_SPEED		5.0f
 
 // Score
 int score = 0;
-// This tracks when the score is updated by comparing lastScore to score
-int lastScore = -1;
+int lastScore = -1;						// This tracks when the score is updated by comparing lastScore to score
 char scoreText[12];
-#define SCORE_ORDER 100 // For completing orders
 
-#define SCORE_REMOVE_INGREDIENT 10 // For discarding ingredients
-#define MIN_PATIENCE 10.0f
-#define MAX_PATIENCE 25.0f
-#define PATIENCE_SPEED 0.5f
-#define SCORE_CUSTOMER_LEFT 50 // points lost when a customer leaves 
-#define SCORE_SPEED_BONUS_MAX 100 // points gained when order is completed faster
+#define SCORE_ORDER				100		// For completing orders
+#define SCORE_SPEED_BONUS_MAX	100		// points gained when order is completed faster
+#define SCORE_REMOVE_INGREDIENT -10		// For discarding ingredients
+#define SCORE_CUSTOMER_LEFT		-50		// points lost when a customer leaves 
 
 // Timer
-int total_seconds = 300; // 5 minutes
+int total_seconds = 300;				// 5 minutes
 
 int minutes = 0;
 int seconds = 0;
@@ -61,31 +45,41 @@ char timerText[6];
 clock_t next_tick;
 
 // Customer
-#define MAX_CUSTOMERS 50
-#define CUSTOMERS_SHOWN 3
-#define NUM_CHARACTER_ASSETS 9
+#define MAX_CUSTOMERS			50
+#define CUSTOMERS_SHOWN			3
+#define NUM_CHARACTER_ASSETS	9
+
+struct AnimationState
+{
+	float animationProgress;			// Set to 0.0f under spawn initial customers, used as animation tracker
+	CP_Vector startPos;					// Remembers where the customer started moving from
+	CP_Vector targetPos;				// Remembers where the customer is moving to
+	int isAnimating;					// 1 if customer is currently exiting. This is for the leaving animation
+};
 
 struct Customer
 {
 	CP_Image asset;
 	int order[SANDWICH_SIZE];
 	int position;
-	float x;
-	float y;
+	CP_Vector currentPos;
 	float width;
 	float height;
 	int orderCompleted;
 	float patience;
 	float maxPatience;
-	float animationProgress; // Set to 0.0f under spawn initial customers, used as animation tracker
-	CP_Vector startPos;      // Remembers where the customer started moving from
-	CP_Vector targetPos;     // Remembers where the customer is moving to
-	int isLeaving;			 // 1 if customer is currently exiting. This is for the leaving animation
 	float shakeTimer;
+	struct AnimationState animState;
 };
+
 struct Customer customers[MAX_CUSTOMERS];
 CP_Image customerAssets[NUM_CHARACTER_ASSETS];
 int customerCount = 0;
+
+// Patience 
+#define MIN_PATIENCE 10.0f
+#define MAX_PATIENCE 25.0f
+#define PATIENCE_SPEED 0.5f
 
 // For leaving customers
 struct Customer leavingCustomers[MAX_CUSTOMERS];
@@ -149,9 +143,9 @@ static void UpdateCustomerPositions(void)
 		customers[i].position = i;
 
 		// Set coordinates for moving animation
-		customers[i].startPos = CP_Vector_Set(customers[i].x, customers[i].y);
-		customers[i].targetPos = CP_Vector_Set(450.0f + (i * 240.0f), 550.0f);
-		customers[i].animationProgress = 0.0f; // Set animation progress at 0%
+		customers[i].animState.startPos = CP_Vector_Set(customers[i].currentPos.x, customers[i].currentPos.y);
+		customers[i].animState.targetPos = CP_Vector_Set(450.0f + (i * 240.0f), 550.0f);
+		customers[i].animState.animationProgress = 0.0f; // Set animation progress at 0%
 
 		customers[i].width = 180.0f;
 		customers[i].height = 220.0f;
@@ -167,18 +161,18 @@ static void SpawnCustomer(void) // spwan just one customer at a time, this is ca
 	GenerateRandomOrder(customers[i].order);
 
 	customers[i].orderCompleted = 0;
-	customers[i].isLeaving = 0;
+	customers[i].animState.isAnimating = 0;
 	float randomPatience = MIN_PATIENCE +
 		((float)rand() / (float)RAND_MAX) *
 		(MAX_PATIENCE - MIN_PATIENCE);
 
 	customers[i].patience = randomPatience;
 	customers[i].maxPatience = randomPatience;
-	customers[i].animationProgress = 0.0f;
+	customers[i].animState.animationProgress = 0.0f;
 
 	// Spawn at the right side of the screen
-	customers[i].x = 1900.0f;
-	customers[i].y = 400.0f;
+	customers[i].currentPos.x = 1900.0f;
+	customers[i].currentPos.y = 400.0f;
 
 	customerCount++;
 
@@ -193,10 +187,10 @@ static void CompleteCustomer(int index)
 	leavingCustomers[leavingCustomerCount] = customers[index];
 
 	// Set up their exit path
-	leavingCustomers[leavingCustomerCount].startPos = CP_Vector_Set(customers[index].x, customers[index].y);
-	leavingCustomers[leavingCustomerCount].targetPos = CP_Vector_Set(customers[index].x, -100.0f); // Move up off-screen
-	leavingCustomers[leavingCustomerCount].animationProgress = 0.0f;
-	leavingCustomers[leavingCustomerCount].isLeaving = 1;
+	leavingCustomers[leavingCustomerCount].animState.startPos = customers[index].currentPos;
+	leavingCustomers[leavingCustomerCount].animState.targetPos = CP_Vector_Set(customers[index].currentPos.x, -100.0f); // Move up off-screen
+	leavingCustomers[leavingCustomerCount].animState.animationProgress = 0.0f;
+	leavingCustomers[leavingCustomerCount].animState.isAnimating = 1;
 	leavingCustomerCount++;
 
 	// Shift the main queue immediately so the next customer takes over index 0
@@ -224,17 +218,17 @@ static void SpawnInitialCustomers(void)
 		GenerateRandomOrder(customers[i].order);
 
 		customers[i].orderCompleted = 0;
-		customers[i].isLeaving = 0;
+		customers[i].animState.isAnimating = 0;
 		float randomPatience = MIN_PATIENCE +
 			((float)rand() / (float)RAND_MAX) *
 			(MAX_PATIENCE - MIN_PATIENCE);
 		customers[i].patience = randomPatience;
 		customers[i].maxPatience = randomPatience;
-		customers[i].animationProgress = 0.0f; // Set animation progress to 0. This variable is used to track individual animation progress.
+		customers[i].animState.animationProgress = 0.0f; // Set animation progress to 0. This variable is used to track individual animation progress.
 
 		// Initial spawn coordinates
-		customers[i].x = 1900.0f;
-		customers[i].y = 400.0f;
+		customers[i].currentPos.x = 1900.0f;
+		customers[i].currentPos.y = 400.0f;
 	}
 
 	UpdateCustomerPositions();
@@ -437,19 +431,18 @@ void Game_Update(void)
 		// Interpolate coordinates via your custom function
 		CP_Vector positionFrame = MoveImage(
 			CUSTOMER_MOVE_SPEED * CP_System_GetDt(),
-			customers[i].startPos,
-			customers[i].targetPos,
-			&customers[i].animationProgress
+			customers[i].animState.startPos,
+			customers[i].animState.targetPos,
+			&customers[i].animState.animationProgress
 		);
 
 		// Store frame updates so downstream math remains fully synced
-		customers[i].x = positionFrame.x;
-		customers[i].y = positionFrame.y;
+		customers[i].currentPos = positionFrame;
 
 		// Calculate shaking movement
 		float shakeOffset = 0.0f;
 
-		if (!customers[i].isLeaving)
+		if (!customers[i].animState.isAnimating)
 		{
 			shakeOffset = ShakeCustomer(
 				customers[i].patience,
@@ -460,21 +453,21 @@ void Game_Update(void)
 
 		CP_Image_Draw(
 			customers[i].asset,
-			customers[i].x + shakeOffset,
-			customers[i].y,
+			customers[i].currentPos.x + shakeOffset,
+			customers[i].currentPos.y,
 			customers[i].width,
 			customers[i].height,
 			255
 		);
 
 		// Patience timer bar above the customer 
-		if (!customers[i].isLeaving && customers[i].x + customers[i].width / 2.0f <= (float)CP_System_GetWindowWidth())
+		if (!customers[i].animState.isAnimating && customers[i].currentPos.x + customers[i].width / 2.0f <= (float)CP_System_GetWindowWidth())
 		{
 			float ratio = customers[i].patience / customers[i].maxPatience;
 			float barWidth = customers[i].width;
 			float barHeight = 15.0f;
-			float barX = customers[i].x - barWidth / 2.0f;
-			float barY = customers[i].y - customers[i].height / 2.0f - 25.0f;
+			float barX = customers[i].currentPos.x - barWidth / 2.0f;
+			float barY = customers[i].currentPos.y - customers[i].height / 2.0f - 25.0f;
 
 			CP_Settings_RectMode(CP_POSITION_CORNER);
 			CP_Settings_NoStroke();
@@ -502,15 +495,14 @@ void Game_Update(void)
 	for (int i = 0; i < leavingCustomerCount; i++)
 	{
 		// Animate leaving progress independent of queue steps
-		CP_Vector positionFrame = MoveImage(CUSTOMER_MOVE_SPEED * CP_System_GetDt(), leavingCustomers[i].startPos, leavingCustomers[i].targetPos, &leavingCustomers[i].animationProgress);
-		leavingCustomers[i].x = positionFrame.x;
-		leavingCustomers[i].y = positionFrame.y;
+		CP_Vector positionFrame = MoveImage(CUSTOMER_MOVE_SPEED * CP_System_GetDt(), leavingCustomers[i].animState.startPos, leavingCustomers[i].animState.targetPos, &leavingCustomers[i].animState.animationProgress);
+		leavingCustomers[i].currentPos = positionFrame;
 
 		// Draw the walking-away customer (No patience bar drawn here!)
-		CP_Image_Draw(leavingCustomers[i].asset, leavingCustomers[i].x, leavingCustomers[i].y, leavingCustomers[i].width, leavingCustomers[i].height, 255);
+		CP_Image_Draw(leavingCustomers[i].asset, leavingCustomers[i].currentPos.x, leavingCustomers[i].currentPos.y, leavingCustomers[i].width, leavingCustomers[i].height, 255);
 
 		// Clean them up once they completely vanish off screen
-		if (leavingCustomers[i].animationProgress >= 1.0f)
+		if (leavingCustomers[i].animState.animationProgress >= 1.0f)
 		{
 			ShiftCustomerArray(leavingCustomers, &leavingCustomerCount, i);
 			i--;
@@ -556,7 +548,7 @@ void Game_Update(void)
 		if (sandwichOrder > 0)
 		{
 			sandwichOrder--;
-			score -= SCORE_REMOVE_INGREDIENT;
+			score += SCORE_REMOVE_INGREDIENT;
 			score = CP_Math_ClampInt(score, 0, INT_MAX); // clamps score to 0
 		}
 	}
@@ -596,7 +588,7 @@ void Game_Update(void)
 	{
 		if (customers[i].patience <= 0.0f)
 		{
-			score -= SCORE_CUSTOMER_LEFT;
+			score += SCORE_CUSTOMER_LEFT;
 			score = CP_Math_ClampInt(score, 0, INT_MAX);
 
 			CompleteCustomer(i);
