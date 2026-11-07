@@ -11,3 +11,5 @@ struct Ingredient
 
 // Ingredients
 struct Ingredient bread, tomato, lettuce, cheese, ham;
+
+#define INGREDIENT_COUNT	5

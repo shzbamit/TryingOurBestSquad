@@ -13,54 +13,59 @@
 CP_Font myFont;
 
 // Colours
-#define BG_COLOUR				CP_Color_Create(247, 252, 252, 255) // Background
-#define SCORE_TEXT_COLOR		CP_Color_Create(128, 128, 128, 255) 
+#define BG_COLOUR					CP_Color_Create(247, 252, 252, 255) // Background
+#define SCORE_TEXT_COLOR			CP_Color_Create(128, 128, 128, 255) 
 
-#define SCORE_TEXT_SIZE			100.0f
-#define SANDWICH_SIZE			5
+#define SCORE_TEXT_SIZE				100.0f
 
-int sandwichOrder = 0;					// order in which sandwich will be drawn
-int sandwich[SANDWICH_SIZE] = { 0, 0, 0, 0, 0}; // for storing which ingredient value
-
-// Animations
-#define CUSTOMER_MOVE_SPEED		5.0f
+// Sandwich
+#define MAX_SANDWICH_SIZE			8
+#define MIN_SANDWICH_SIZE			5
+int sandwichOrder =					0;		// order in which sandwich will be drawn
+int sandwich[MAX_SANDWICH_SIZE] =	{ 0 }; // for storing which ingredient value
 
 // Score
-int score = 0;
-int lastScore = -1;						// This tracks when the score is updated by comparing lastScore to score
+int score =							0;
+int lastScore =						-1;		// This tracks when the score is updated by comparing lastScore to score
 char scoreText[12];
 
-#define SCORE_ORDER				100		// For completing orders
-#define SCORE_SPEED_BONUS_MAX	100		// points gained when order is completed faster
-#define SCORE_REMOVE_INGREDIENT -10		// For discarding ingredients
-#define SCORE_CUSTOMER_LEFT		-50		// points lost when a customer leaves 
+#define SCORE_ORDER					100		// For completing orders
+#define SCORE_SPEED_BONUS_MAX		100		// points gained when order is completed faster
+#define SCORE_REMOVE_INGREDIENT		-10		// For discarding ingredients
+#define SCORE_CUSTOMER_LEFT			-50		// points lost when a customer leaves 
 
 // Timer
-int total_seconds = 300;				// 5 minutes
+int total_seconds =					300;	// 5 minutes
 
-int minutes = 0;
-int seconds = 0;
+int minutes =						0;
+int seconds =						0;
 char timerText[6];
 
 clock_t next_tick;
 
 // Customer
-#define MAX_CUSTOMERS			50
-#define CUSTOMERS_SHOWN			3
-#define NUM_CHARACTER_ASSETS	9
+#define MAX_CUSTOMERS				50
+#define CUSTOMERS_SHOWN				3
+#define NUM_CHARACTER_ASSETS		9
+#define CUSTOMER_PLACEMENT_INTERVAL 260.0f
 
 struct AnimationState
 {
-	float animationProgress;			// Set to 0.0f under spawn initial customers, used as animation tracker
-	CP_Vector startPos;					// Remembers where the customer started moving from
-	CP_Vector targetPos;				// Remembers where the customer is moving to
-	int isAnimating;					// 1 if customer is currently exiting. This is for the leaving animation
+	float animationProgress;				// Set to 0.0f under spawn initial customers, used as animation tracker
+	CP_Vector startPos;						// Remembers where the customer started moving from
+	CP_Vector targetPos;					// Remembers where the customer is moving to
+	int isAnimating;						// 1 if customer is currently exiting. This is for the leaving animation
+	float animSpeed;
 };
+
+// Animations
+#define CUSTOMER_MOVE_SPEED			5.0f
 
 struct Customer
 {
 	CP_Image asset;
-	int order[SANDWICH_SIZE];
+	int order[MAX_SANDWICH_SIZE];			// Generates a sandwich array of maximum size
+	int orderSize;							// For storing the actual size variable of order sandwich
 	int position;
 	CP_Vector currentPos;
 	float width;
@@ -74,16 +79,16 @@ struct Customer
 
 struct Customer customers[MAX_CUSTOMERS];
 CP_Image customerAssets[NUM_CHARACTER_ASSETS];
-int customerCount = 0;
+int customerCount =					0;
 
 // Patience 
-#define MIN_PATIENCE 10.0f
-#define MAX_PATIENCE 25.0f
-#define PATIENCE_SPEED 0.5f
+#define MIN_PATIENCE				10.0f
+#define MAX_PATIENCE				25.0f
+#define PATIENCE_SPEED				0.5f
 
 // For leaving customers
 struct Customer leavingCustomers[MAX_CUSTOMERS];
-int leavingCustomerCount = 0;
+int leavingCustomerCount =			0;
 
 
 // Array cleaner
@@ -96,43 +101,20 @@ static void ShiftCustomerArray(struct Customer arr[], int* count, int indexToRem
 	(*count)--;
 }
 
-static void GenerateRandomOrder(int order[])
+static void GenerateRandomOrder(int order[], int orderSize)
 {
 	int min = 1;
-	int max = 4; 
+	int max = INGREDIENT_COUNT - 1; 
 
-	for (int i = 0; i < SANDWICH_SIZE; i++)
+	for (int i = 0; i < orderSize; i++)
 	{
-		if (i == 0 || i == SANDWICH_SIZE - 1) {
-			order[i] = 0;
+		if (i == 0 || i == orderSize - 1) {
+			order[i] = 0; // Assigns first and last ingredient as bread
 		}
 		else {
-			order[i] = (rand() % (max - min + 1)) + min; 
+			order[i] = (rand() % (max - min + 1)) + min; // For deciding ingredients
 		}
 	}
-}
-
-static int CheckSandwich(void)
-{
-	if (customerCount == 0)
-	{
-		return 0;
-	}
-
-	if (sandwichOrder != SANDWICH_SIZE)
-	{
-		return 0;
-	}
-
-	// Compare the player sandwich with the front customer order
-	for (int i = 0; i < SANDWICH_SIZE; i++)
-	{
-		if (sandwich[i] != customers[0].order[i])
-		{
-			return 0;
-		}
-	}
-	return 1;
 }
 
 static void UpdateCustomerPositions(void)
@@ -144,7 +126,7 @@ static void UpdateCustomerPositions(void)
 
 		// Set coordinates for moving animation
 		customers[i].animState.startPos = CP_Vector_Set(customers[i].currentPos.x, customers[i].currentPos.y);
-		customers[i].animState.targetPos = CP_Vector_Set(450.0f + (i * 240.0f), 550.0f);
+		customers[i].animState.targetPos = CP_Vector_Set(450.0f + (i * CUSTOMER_PLACEMENT_INTERVAL), 550.0f);
 		customers[i].animState.animationProgress = 0.0f; // Set animation progress at 0%
 
 		customers[i].width = 180.0f;
@@ -158,7 +140,8 @@ static void SpawnCustomer(void) // spwan just one customer at a time, this is ca
 
 	customers[i].asset = customerAssets[rand() % NUM_CHARACTER_ASSETS];
 
-	GenerateRandomOrder(customers[i].order);
+	customers[i].orderSize = (rand() % (MAX_SANDWICH_SIZE - MIN_SANDWICH_SIZE + 1)) + MIN_SANDWICH_SIZE;
+	GenerateRandomOrder(customers[i].order, customers[i].orderSize);
 
 	customers[i].orderCompleted = 0;
 	customers[i].animState.isAnimating = 0;
@@ -215,16 +198,20 @@ static void SpawnInitialCustomers(void)
 		customers[i].asset =
 			customerAssets[rand() % NUM_CHARACTER_ASSETS];
 
-		GenerateRandomOrder(customers[i].order);
+		customers[i].orderSize = (rand() % (MAX_SANDWICH_SIZE - MIN_SANDWICH_SIZE + 1)) + MIN_SANDWICH_SIZE;
+		GenerateRandomOrder(customers[i].order, customers[i].orderSize);
 
 		customers[i].orderCompleted = 0;
-		customers[i].animState.isAnimating = 0;
+
 		float randomPatience = MIN_PATIENCE +
 			((float)rand() / (float)RAND_MAX) *
 			(MAX_PATIENCE - MIN_PATIENCE);
 		customers[i].patience = randomPatience;
 		customers[i].maxPatience = randomPatience;
+
+		customers[i].animState.animSpeed = CUSTOMER_MOVE_SPEED;
 		customers[i].animState.animationProgress = 0.0f; // Set animation progress to 0. This variable is used to track individual animation progress.
+		customers[i].animState.isAnimating = 0;
 
 		// Initial spawn coordinates
 		customers[i].currentPos.x = 1900.0f;
@@ -236,8 +223,8 @@ static void SpawnInitialCustomers(void)
 
 static int FindMatchingCustomer(void)
 {
-	// Only check for matching orders when the sandwich is complete
-	if (sandwichOrder != SANDWICH_SIZE)
+	// Check further only if there is a sandwich
+	if (sandwichOrder == 0)
 	{
 		return -1;
 	}
@@ -246,17 +233,26 @@ static int FindMatchingCustomer(void)
 
 	for (int i = 0; i < customerCount; i++)
 	{
+		// Size of sandwich must first be identical
+		if (sandwichOrder != customers[i].orderSize)
+		{
+			continue; // If sizes don't match, skip to the next customer
+		}
+
 		int match = 1;
 
-		for (int j = 0; j < SANDWICH_SIZE; j++)
+		// Compare each ingredient between customer[i].order and sandwich[j]
+		for (int j = 0; j < customers[i].orderSize; j++)
 		{
 			if (sandwich[j] != customers[i].order[j])
 			{
-				match = 0;
+				match = 0; // Found a mismatched ingredient
 				break;
 			}
 		}
 
+		// If a match is found, track the customer with lowest patience
+		// This is to enforce a tie-breaking rule where lowest patience customer gets their order first
 		if (match)
 		{
 			if (selectedCustomer == -1 ||
@@ -269,6 +265,7 @@ static int FindMatchingCustomer(void)
 
 	return selectedCustomer;
 }
+
 
 void Game_Init(void)
 {
@@ -326,8 +323,8 @@ void Game_Update(void)
 	CP_Graphics_ClearBackground(BG_COLOUR); // Don't move this, this is for clearing the canvas at the start of every update
 
 	// Dependencies
-	static CP_Image ingredients[SANDWICH_SIZE];// array for storing the ref to actual ingredient images
-	static const char* sandwich_ingredients[5];
+	static CP_Image ingredients[INGREDIENT_COUNT];// array for storing the ref to actual ingredient images
+	static const char* sandwich_ingredients[INGREDIENT_COUNT];
 	static int arrays_initialized = 0;
 
 	if (!arrays_initialized) // initializes the arrays only once
@@ -352,85 +349,16 @@ void Game_Update(void)
 	CP_Font_Set(myFont);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BASELINE);
 
-	for (int i = 0; i < customerCount; i++)
-	{
-		char customerText[30];
-
-		snprintf(customerText, sizeof(customerText), "Customer %d", i + 1);
-
-		float startX = 30.0f + (i * 200.0f);
-		float startY = 55.0f;
-
-		CP_Font_DrawText(customerText, startX, startY);
-
-		for (int j = 0; j < SANDWICH_SIZE; j++)
-		{
-			int ingredientID = customers[i].order[j];
-			char keyText[2];
-
-			switch (ingredientID)
-			{
-			case 0: keyText[0] = 'B'; break;
-			case 1: keyText[0] = 'T'; break;
-			case 2: keyText[0] = 'L'; break;
-			case 3: keyText[0] = 'C'; break;
-			case 4: keyText[0] = 'H'; break;
-			default: keyText[0] = '?'; break;
-			}
-
-			keyText[1] = '\0';
-
-			float keyX = startX;
-			float keyY = startY + 20.0f + (j * 55.0f);
-
-			CP_Settings_RectMode(CP_POSITION_CORNER);
-			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
-			CP_Settings_Stroke(CP_Color_Create(150, 150, 150, 255));
-			CP_Graphics_DrawRect(keyX, keyY, 40.0f, 40.0f);
-
-			CP_Settings_NoStroke();
-			CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-			CP_Settings_TextSize(25.0f);
-			CP_Font_DrawText(keyText, keyX + 12.0f, keyY + 29.0f);
-
-			CP_Image_Draw(
-				ingredients[ingredientID],
-				keyX + 72.0f,
-				keyY + 20.0f,
-				55.0f,
-				55.0f,
-				255
-			);
-		}
-	}
-
-
-	// Score text
-	CP_Settings_Fill(SCORE_TEXT_COLOR);
-	CP_Settings_TextSize(SCORE_TEXT_SIZE);
-	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BASELINE);
-
-	CP_Font_DrawText(scoreText, 800.0f, 100.0f);
-
-	// Timer text
-	CP_Font_DrawText(timerText, 1450.0f, 100.0f);
-
 	// Calculate once before the loop begins
 	float centerX = (float)CP_System_GetWindowWidth() / 2.0f;
 	float centerYBase = (float)CP_System_GetWindowHeight() * 0.75f;
-
-	// Render sandwich 
-	for (int i = 0; i < sandwichOrder; i++)
-	{
-		CP_Image_Draw(ingredients[sandwich[i]], centerX, centerYBase - (20.0f * i), 200.0f, 200.0f, 255);
-	}
 
 	// Draw customers in the queue
 	for (int i = 0; i < customerCount; i++)
 	{
 		// Interpolate coordinates via your custom function
 		CP_Vector positionFrame = MoveImage(
-			CUSTOMER_MOVE_SPEED * CP_System_GetDt(),
+			customers[i].animState.animSpeed * CP_System_GetDt(),
 			customers[i].animState.startPos,
 			customers[i].animState.targetPos,
 			&customers[i].animState.animationProgress
@@ -495,7 +423,7 @@ void Game_Update(void)
 	for (int i = 0; i < leavingCustomerCount; i++)
 	{
 		// Animate leaving progress independent of queue steps
-		CP_Vector positionFrame = MoveImage(CUSTOMER_MOVE_SPEED * CP_System_GetDt(), leavingCustomers[i].animState.startPos, leavingCustomers[i].animState.targetPos, &leavingCustomers[i].animState.animationProgress);
+		CP_Vector positionFrame = MoveImage(leavingCustomers[i].animState.animSpeed * CP_System_GetDt(), leavingCustomers[i].animState.startPos, leavingCustomers[i].animState.targetPos, &leavingCustomers[i].animState.animationProgress);
 		leavingCustomers[i].currentPos = positionFrame;
 
 		// Draw the walking-away customer (No patience bar drawn here!)
@@ -509,10 +437,78 @@ void Game_Update(void)
 		}
 	}
 
+	for (int i = 0; i < customerCount; i++)
+	{
+		char customerText[30];
+
+		snprintf(customerText, sizeof(customerText), "Customer %d", i + 1);
+
+		float startX = 30.0f + (i * 200.0f);
+		float startY = 55.0f;
+
+		CP_Font_DrawText(customerText, startX, startY);
+
+		for (int j = 0; j < customers[i].orderSize; j++)
+		{
+			int ingredientID = customers[i].order[j];
+			char keyText[2];
+
+			switch (ingredientID)
+			{
+			case 0: keyText[0] = 'B'; break;
+			case 1: keyText[0] = 'T'; break;
+			case 2: keyText[0] = 'L'; break;
+			case 3: keyText[0] = 'C'; break;
+			case 4: keyText[0] = 'H'; break;
+			default: keyText[0] = '?'; break;
+			}
+
+			keyText[1] = '\0';
+
+			float keyX = startX;
+			float keyY = startY + 20.0f + (j * 55.0f);
+
+			CP_Settings_RectMode(CP_POSITION_CORNER);
+			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
+			CP_Settings_Stroke(CP_Color_Create(150, 150, 150, 255));
+			CP_Graphics_DrawRect(keyX, keyY, 40.0f, 40.0f);
+
+			CP_Settings_NoStroke();
+			CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+			CP_Settings_TextSize(25.0f);
+			CP_Font_DrawText(keyText, keyX + 12.0f, keyY + 29.0f);
+
+			CP_Image_Draw(
+				ingredients[ingredientID],
+				keyX + 72.0f,
+				keyY + 20.0f,
+				55.0f,
+				55.0f,
+				255
+			);
+		}
+	}
+
+	// Score text
+	CP_Settings_Fill(SCORE_TEXT_COLOR);
+	CP_Settings_TextSize(SCORE_TEXT_SIZE);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BASELINE);
+
+	CP_Font_DrawText(scoreText, 800.0f, 100.0f);
+
+	// Timer text
+	CP_Font_DrawText(timerText, 1450.0f, 100.0f);
+
+	// Render sandwich 
+	for (int i = 0; i < sandwichOrder; i++)
+	{
+		CP_Image_Draw(ingredients[sandwich[i]], centerX, centerYBase - (20.0f * i), 200.0f, 200.0f, 255);
+	}
+
 	// End of asset renders =====================================================================================================================
 
 	// Controls
-	if (customerCount > 0 && sandwichOrder < SANDWICH_SIZE)
+	if (customerCount > 0 && sandwichOrder < MAX_SANDWICH_SIZE)
 	{
 		if (CP_Input_KeyTriggered(bread.keybind))
 		{
@@ -554,7 +550,7 @@ void Game_Update(void)
 	}
 
 	sandwichOrder = CP_Math_ClampInt(
-		sandwichOrder, 0, SANDWICH_SIZE
+		sandwichOrder, 0, MAX_SANDWICH_SIZE
 	);
 
 	int matchedCustomer = FindMatchingCustomer();
