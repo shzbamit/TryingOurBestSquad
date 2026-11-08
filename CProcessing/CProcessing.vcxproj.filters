@@ -24,6 +24,12 @@
     <ClCompile Include="animations.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ingredients.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sandwich.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h">
@@ -33,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ingredients.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sandwich.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
