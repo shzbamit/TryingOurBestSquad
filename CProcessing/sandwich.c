@@ -1,12 +1,19 @@
 #include <stdlib.h>
 #include "sandwich.h"
 
-int sandwichOrder = 0;
-struct Ingredient sandwich[MAX_SANDWICH_SIZE];
+int sandwichOrder = 0; // Used to track the current sandwich index and sandwich size
+struct Ingredient sandwich[MAX_SANDWICH_SIZE]; // Contains the sandwich being made currently
 
 struct DiscardedIngredient discardedItems[MAX_DISCARDED_ITEMS];
 int discardedCount = 0;
 
+/* !
+@brief  Updates currenPos of each sandwich ingredient in sandwichOrder 
+		based on animationProgress.
+		CP_Image_Draw() then places the ingredient based on currentPos.
+@param  none
+@return none
+*//*______________________________________________________________*/
 void RenderSandwich(void)
 {
 	for (int i = 0; i < sandwichOrder; i++)
@@ -31,8 +38,20 @@ void RenderSandwich(void)
 	}
 }
 
+/* !
+@brief  Assigns selectedIngredient according to CP_Input_Key.
+		
+		If any key is pressed, keyPressed is set to true,
+		and set the current sandwichOrder index of sandwich[] to the selectedIngredient,
+		then set the positions of the animationState of the corresponding sandwich[sandwichOrder] struct.
+
+		sandwichOrder is then incremented before next ingredient.
+@param  int
+@return none
+*//*______________________________________________________________*/
 void MakeSandwich(int customerCount)
 {
+	// Only allow adding ingredients if there are customers and sandwichOrder isn't already at max size
 	if (customerCount > 0 && sandwichOrder < MAX_SANDWICH_SIZE)
 	{
 		struct Ingredient selectedIngredient;
@@ -46,13 +65,14 @@ void MakeSandwich(int customerCount)
 
 		if (keyPressed)
 		{
-			// 1. Copy the entire baseline struct into this slot
+			// Copy the entire baseline struct into this slot
 			sandwich[sandwichOrder] = selectedIngredient;
 
-			// 2. Set up its unique falling path variables inside this specific slot
+			// Set up animation state positions
 			sandwich[sandwichOrder].animState.animationProgress = 0.0f;
 			sandwich[sandwichOrder].animState.startPos = CP_Vector_Set(INGREDIENT_POSX, -100.0f); // Top of screen
-			sandwich[sandwichOrder].animState.targetPos = CP_Vector_Set(INGREDIENT_POSX, INGREDIENT_POSY - (INGREDIENT_Y_OFFSET * sandwichOrder));
+			// Place this ingredient higher based on the current sandwichOrder
+			sandwich[sandwichOrder].animState.targetPos = CP_Vector_Set(INGREDIENT_POSX, INGREDIENT_POSY - (INGREDIENT_Y_OFFSET * sandwichOrder)); 
 			sandwich[sandwichOrder].animState.currentPos = sandwich[sandwichOrder].animState.startPos;
 
 			sandwichOrder++;
