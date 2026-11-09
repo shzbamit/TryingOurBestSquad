@@ -12,6 +12,12 @@
 
 // Assets
 CP_Font myFont;
+CP_Sound bgm;
+CP_Sound sfxServe;
+CP_Sound sfxDiscard; 
+CP_Sound sfxLeave; 
+CP_Sound sfxTick;
+CP_Sound sfxCustomerEnter;
 
 // Colours
 #define BG_COLOUR					CP_Color_Create(247, 252, 252, 255) // Background
@@ -27,6 +33,8 @@ char scoreText[12];
 #define SCORE_SPEED_BONUS_MAX		100		// points gained when order is completed faster
 #define SCORE_REMOVE_INGREDIENT		-10		// For discarding ingredients
 #define SCORE_CUSTOMER_LEFT			-50		// points lost when a customer leaves 
+#define CUSTOMER_PLACEMENT_START_X	700.0f  // must be right of the order columns (~540)
+#define CUSTOMER_PLACEMENT_INTERVAL 260.0f
 
 // Timer
 int total_seconds =					300;	// 5 minutes
@@ -56,6 +64,7 @@ struct Customer
 	float patience;
 	float maxPatience;
 	float shakeTimer;
+	int shakeSoundPlayed;
 	struct AnimationState animState;
 };
 
@@ -111,7 +120,7 @@ static void UpdateCustomerPositions(void)
 
 		// Set coordinates for moving animation
 		customers[i].animState.startPos = customers[i].animState.currentPos;
-		customers[i].animState.targetPos = CP_Vector_Set(450.0f + (i * CUSTOMER_PLACEMENT_INTERVAL), 550.0f);
+		customers[i].animState.targetPos = CP_Vector_Set(CUSTOMER_PLACEMENT_START_X + (i * CUSTOMER_PLACEMENT_INTERVAL), 550.0f);
 		customers[i].animState.animationProgress = 0.0f; // Set animation progress at 0%
 
 		customers[i].width = 180.0f;
@@ -129,6 +138,7 @@ static void SpawnCustomer(void) // spwan just one customer at a time, this is ca
 	GenerateRandomOrder(customers[i].order, customers[i].orderSize);
 
 	customers[i].orderCompleted = 0;
+	customers[i].shakeSoundPlayed = 0;
 	customers[i].animState.isAnimating = 0;
 	float randomPatience = MIN_PATIENCE +
 		((float)rand() / (float)RAND_MAX) *
@@ -143,6 +153,8 @@ static void SpawnCustomer(void) // spwan just one customer at a time, this is ca
 	customers[i].animState.currentPos.y = 400.0f;
 
 	customerCount++;
+
+	CP_Sound_PlayAdvanced(sfxCustomerEnter, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
 
 	UpdateCustomerPositions();
 }
@@ -187,6 +199,7 @@ static void SpawnInitialCustomers(void)
 		GenerateRandomOrder(customers[i].order, customers[i].orderSize);
 
 		customers[i].orderCompleted = 0;
+		customers[i].shakeSoundPlayed = 0;
 
 		float randomPatience = MIN_PATIENCE +
 			((float)rand() / (float)RAND_MAX) *
@@ -270,6 +283,14 @@ void Game_Init(void)
 
 	myFont = CP_Font_Load("Assets/Exo2-Regular.ttf");
 
+	// Load sounds 
+	bgm = CP_Sound_LoadMusic("Assets/bgm.mp3");
+	sfxServe = CP_Sound_Load("Assets/serve.mp3");
+	sfxDiscard = CP_Sound_Load("Assets/discard.mp3");
+	sfxLeave = CP_Sound_Load("Assets/leave.mp3");
+	sfxTick = CP_Sound_Load("Assets/tick.mp3");
+	sfxCustomerEnter = CP_Sound_Load("Assets/CustomerEnter.mp3");
+
 	srand((unsigned int)time(NULL));
 
 	// Customer queue
@@ -278,6 +299,9 @@ void Game_Init(void)
 	next_tick = clock() + CLOCKS_PER_SEC;   // Set the first tick target
 	// Initialize the string with a safe placeholder
 	snprintf(timerText, sizeof(timerText), "05:00");
+
+	// Play music on loop: volume, pitch, looping, group
+	CP_Sound_PlayAdvanced(bgm, 0.4f, 1.0f, TRUE, CP_SOUND_GROUP_MUSIC);
 }
 
 void Game_Update(void)
@@ -435,6 +459,19 @@ void Game_Update(void)
 
 	CP_Font_DrawText(scoreText, 800.0f, 100.0f);
 
+	// Timer text 
+	if (total_seconds <= 30)
+	{
+		// Toggles every 0.25s, so it blinks about twice per second
+		int flashOn = ((int)(CP_System_GetSeconds() * 4.0) % 2) == 0;
+
+		if (flashOn)
+		{
+			CP_Settings_Fill(CP_Color_Create(220, 50, 50, 255));
+		}
+		// else: stays SCORE_TEXT_COLOR (grey), which creates the flash
+	}
+
 	// Timer text
 	CP_Font_DrawText(timerText, 1450.0f, 100.0f);
 
@@ -453,12 +490,31 @@ void Game_Update(void)
 		if (sandwichOrder > 0)
 		{
 			RemoveIngredient();
+			CP_Sound_PlayAdvanced(sfxDiscard, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
 
 			// Remove ingredient from the active sandwich stack instantly
 			sandwichOrder--;
 			score += SCORE_REMOVE_INGREDIENT;
 			score = CP_Math_ClampInt(score, 0, INT_MAX); // clamps score to 0
 		}
+	}
+
+	// Removes all ingredients from the current sandwich 
+	if (customerCount > 0 && CP_Input_KeyTriggered(KEY_DELETE))
+	{
+		if (sandwichOrder > 0)
+		{
+			CP_Sound_PlayAdvanced(sfxDiscard, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
+		}
+
+		while (sandwichOrder > 0)
+		{
+			RemoveIngredient();
+
+			sandwichOrder--;
+			score += SCORE_REMOVE_INGREDIENT;
+		}
+		score = CP_Math_ClampInt(score, 0, INT_MAX); // clamps score to 0
 	}
 
 
@@ -480,6 +536,7 @@ void Game_Update(void)
 		score = CP_Math_ClampInt(score, 0, INT_MAX);
 
 		CompleteCustomer(matchedCustomer);
+		CP_Sound_PlayAdvanced(sfxServe, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
 
 		sandwichOrder = 0;
 	}
@@ -488,6 +545,15 @@ void Game_Update(void)
 	for (int i = 0; i < customerCount; i++)
 	{
 		customers[i].patience -= CP_System_GetDt() * PATIENCE_SPEED;
+
+		// Play the warning sound once, when the customer has 4 secs left
+		float secondsLeft = customers[i].patience / PATIENCE_SPEED;
+
+		if (!customers[i].shakeSoundPlayed && secondsLeft <= 3.0f)
+		{
+			customers[i].shakeSoundPlayed = 1;
+			CP_Sound_PlayAdvanced(sfxLeave, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
+		}
 	}
 
 	// Remove customers whose patience has expired
@@ -515,6 +581,12 @@ void Game_Update(void)
 		total_seconds--;
 		next_tick = clock() + CLOCKS_PER_SEC; // Set target for next second
 
+		// timer countdown sfx plays 
+		if (total_seconds >= 0 && total_seconds <= 10)
+		{
+			CP_Sound_PlayAdvanced(sfxTick, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
+		}
+
 		// Exit game if timer ends
 		if (total_seconds < 0) {
 			CP_Engine_Terminate();
@@ -538,6 +610,12 @@ void Game_Exit(void)
 	CP_Image_Free(cheese.asset);
 	CP_Image_Free(ham.asset);
 	CP_Font_Free(myFont);
+	CP_Sound_Free(&bgm);
+	CP_Sound_Free(&sfxServe);
+	CP_Sound_Free(&sfxDiscard);
+	CP_Sound_Free(&sfxLeave);
+	CP_Sound_Free(&sfxTick);
+	CP_Sound_Free(&sfxCustomerEnter);
 
 	for (int i = 0; i < NUM_CHARACTER_ASSETS; i++)
 	{
