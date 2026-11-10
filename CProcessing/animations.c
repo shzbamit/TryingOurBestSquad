@@ -28,7 +28,7 @@ float ShakeCustomer(float patience, float maxPatience, float* shakeTimer)
         // Increase animation time
         *shakeTimer += CP_System_GetDt();
 
-        // Calculate side-to-side movement
+		// Calculate side to side movement using a sine wave
         return sinf(*shakeTimer * 35.0f) * 8.0f;
     }
 

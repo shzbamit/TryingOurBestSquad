@@ -10,6 +10,7 @@
 #include "ingredients.h"
 #include "sandwich.h"
 
+
 // Assets
 CP_Font myFont;
 CP_Sound bgm;
@@ -128,25 +129,28 @@ static void UpdateCustomerPositions(void)
 	}
 }
 
-static void SpawnCustomer(void) // spwan just one customer at a time, this is called when a customer leaves the queue
+static void SpawnCustomer(void)
 {
+	if (customerCount >= MAX_CUSTOMERS) return; // guard against overflowing the array
+
 	int i = customerCount;
 
-	customers[i].asset = customerAssets[rand() % NUM_CHARACTER_ASSETS];
+	customers[i].asset = customerAssets[rand() % NUM_CHARACTER_ASSETS]; // Randomly selects a character asset for the customer
 
-	customers[i].orderSize = (rand() % (MAX_SANDWICH_SIZE - MIN_SANDWICH_SIZE + 1)) + MIN_SANDWICH_SIZE;
-	GenerateRandomOrder(customers[i].order, customers[i].orderSize);
+	customers[i].orderSize = (rand() % (MAX_SANDWICH_SIZE - MIN_SANDWICH_SIZE + 1)) + MIN_SANDWICH_SIZE; // Randomly selects a sandwich size for the customer order
+	GenerateRandomOrder(customers[i].order, customers[i].orderSize); // Generates a random sandwich order for the customer
 
-	customers[i].orderCompleted = 0;
-	customers[i].shakeSoundPlayed = 0;
-	customers[i].animState.isAnimating = 0;
-	float randomPatience = MIN_PATIENCE +
-		((float)rand() / (float)RAND_MAX) *
-		(MAX_PATIENCE - MIN_PATIENCE);
+	customers[i].orderCompleted = 0; // Initializes the order completion status
+	customers[i].shakeSoundPlayed = 0; // Initializes the shake sound played status
+	customers[i].shakeTimer = 0.0f; // Initializes the shake timer for the customer
 
+	float randomPatience = MIN_PATIENCE + ((float)rand() / (float)RAND_MAX) * (MAX_PATIENCE - MIN_PATIENCE); // Generates a random patience value for the customer within the defined range
 	customers[i].patience = randomPatience;
-	customers[i].maxPatience = randomPatience;
+	customers[i].maxPatience = randomPatience; 
+
+	customers[i].animState.animSpeed = CUSTOMER_MOVE_SPEED;
 	customers[i].animState.animationProgress = 0.0f;
+	customers[i].animState.isAnimating = 0;
 
 	// Spawn at the right side of the screen
 	customers[i].animState.currentPos.x = 1900.0f;
@@ -180,43 +184,20 @@ static void CompleteCustomer(int index)
 	UpdateCustomerPositions();
 
 	// Spawn a new customer if the queue is below the maximum shown
-	if (customerCount < 3)
+	if (customerCount < CUSTOMERS_SHOWN)
 	{
 		SpawnCustomer();
 	}
 }
 
-static void SpawnInitialCustomers(void)
+static void SpawnInitialCustomers(void) 
 {
-	customerCount = CUSTOMERS_SHOWN;
+	customerCount = 0;
 
-	for (int i = 0; i < customerCount; i++)
+	for (int i = 0; i < CUSTOMERS_SHOWN; i++) // Spawn the initial customers to fill the queue
 	{
-		customers[i].asset =
-			customerAssets[rand() % NUM_CHARACTER_ASSETS];
-
-		customers[i].orderSize = (rand() % (MAX_SANDWICH_SIZE - MIN_SANDWICH_SIZE + 1)) + MIN_SANDWICH_SIZE;
-		GenerateRandomOrder(customers[i].order, customers[i].orderSize);
-
-		customers[i].orderCompleted = 0;
-		customers[i].shakeSoundPlayed = 0;
-
-		float randomPatience = MIN_PATIENCE +
-			((float)rand() / (float)RAND_MAX) *
-			(MAX_PATIENCE - MIN_PATIENCE);
-		customers[i].patience = randomPatience;
-		customers[i].maxPatience = randomPatience;
-
-		customers[i].animState.animSpeed = CUSTOMER_MOVE_SPEED;
-		customers[i].animState.animationProgress = 0.0f; // Set animation progress to 0. This variable is used to track individual animation progress.
-		customers[i].animState.isAnimating = 0;
-
-		// Initial spawn coordinates
-		customers[i].animState.currentPos.x = 1900.0f;
-		customers[i].animState.currentPos.y = 400.0f;
+		SpawnCustomer();
 	}
-
-	UpdateCustomerPositions();
 }
 
 static int FindMatchingCustomer(void)
@@ -253,8 +234,7 @@ static int FindMatchingCustomer(void)
 		// This is to enforce a tie-breaking rule where lowest patience customer gets their order first
 		if (match)
 		{
-			if (selectedCustomer == -1 ||
-				customers[i].patience < customers[selectedCustomer].patience)
+			if (selectedCustomer == -1 || customers[i].patience < customers[selectedCustomer].patience)
 			{
 				selectedCustomer = i;
 			}
@@ -366,15 +346,15 @@ void Game_Update(void)
 			CP_Settings_Fill(CP_Color_Create(200, 200, 200, 255));
 			CP_Graphics_DrawRect(barX, barY, barWidth, barHeight);
 
-			if (ratio > 0.5f)
+			if (ratio > 0.5f) // Green when patience is above 50%
 			{
 				CP_Settings_Fill(CP_Color_Create(0, 200, 0, 255));
 			}
-			else if (ratio > 0.25f)
+			else if (ratio > 0.25f) // Yellow when patience is between 25% and 50%
 			{
 				CP_Settings_Fill(CP_Color_Create(255, 180, 0, 255));
 			}
-			else
+			else // Red when patience is below 25%
 			{
 				CP_Settings_Fill(CP_Color_Create(220, 50, 50, 255));
 			}
@@ -400,23 +380,25 @@ void Game_Update(void)
 		}
 	}
 
+	// Draw the customer orders
 	for (int i = 0; i < customerCount; i++)
 	{
 		char customerText[30];
 
-		snprintf(customerText, sizeof(customerText), "Customer %d", i + 1);
+		snprintf(customerText, sizeof(customerText), "Customer %d", i + 1); 
 
 		float startX = 30.0f + (i * 200.0f);
 		float startY = 55.0f;
 
-		CP_Font_DrawText(customerText, startX, startY);
+		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+		CP_Font_DrawText(customerText, startX, startY); // Draws the customer label above their order
 
-		for (int j = 0; j < customers[i].orderSize; j++)
+		for (int j = 0; j < customers[i].orderSize; j++) // Draws the order ingredients and their corresponding keys
 		{
 			int ingredientID = customers[i].order[j];
 			char keyText[2];
 
-			switch (ingredientID)
+			switch (ingredientID) // Assigns the corresponding key to the ingredient
 			{
 			case 0: keyText[0] = 'B'; break;
 			case 1: keyText[0] = 'T'; break;
@@ -428,19 +410,23 @@ void Game_Update(void)
 
 			keyText[1] = '\0';
 
+			// Calculate the position for each ingredient and its corresponding key
 			float keyX = startX;
 			float keyY = startY + 20.0f + (j * 55.0f);
 
+			// Draw the key box and ingredient image
 			CP_Settings_RectMode(CP_POSITION_CORNER);
 			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
 			CP_Settings_Stroke(CP_Color_Create(150, 150, 150, 255));
 			CP_Graphics_DrawRect(keyX, keyY, 40.0f, 40.0f);
 
+			// Draw the key text and ingredient image
 			CP_Settings_NoStroke();
 			CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 			CP_Settings_TextSize(25.0f);
 			CP_Font_DrawText(keyText, keyX + 12.0f, keyY + 29.0f);
 
+			// Draw the ingredient image next to the key box
 			CP_Image_Draw(
 				ingredients[ingredientID].asset,
 				keyX + 72.0f,
@@ -522,20 +508,19 @@ void Game_Update(void)
 
 	int matchedCustomer = FindMatchingCustomer();
 
+	// If a match is found, complete the order and update the score
 	if (matchedCustomer != -1)
 	{
 		score += SCORE_ORDER;
 
 		// For bonus points
-		float patienceRatio =
-			customers[matchedCustomer].patience /
-			customers[matchedCustomer].maxPatience;
-		int speedBonus = (int)(SCORE_SPEED_BONUS_MAX * patienceRatio);
+		float patienceRatio = customers[matchedCustomer].patience / customers[matchedCustomer].maxPatience; // Calculate the ratio of remaining patience to maximum patience
+		int speedBonus = (int)(SCORE_SPEED_BONUS_MAX * patienceRatio); // Calculate the speed bonus based on the patience ratio
 		score += speedBonus;
 
 		score = CP_Math_ClampInt(score, 0, INT_MAX);
 
-		CompleteCustomer(matchedCustomer);
+		CompleteCustomer(matchedCustomer); // Remove the customer from the queue and mark them as leaving
 		CP_Sound_PlayAdvanced(sfxServe, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
 
 		sandwichOrder = 0;
@@ -610,12 +595,12 @@ void Game_Exit(void)
 	CP_Image_Free(cheese.asset);
 	CP_Image_Free(ham.asset);
 	CP_Font_Free(myFont);
-	CP_Sound_Free(&bgm);
-	CP_Sound_Free(&sfxServe);
-	CP_Sound_Free(&sfxDiscard);
-	CP_Sound_Free(&sfxLeave);
-	CP_Sound_Free(&sfxTick);
-	CP_Sound_Free(&sfxCustomerEnter);
+	CP_Sound_Free(bgm);
+	CP_Sound_Free(sfxServe);
+	CP_Sound_Free(sfxDiscard);
+	CP_Sound_Free(sfxLeave);
+	CP_Sound_Free(sfxTick);
+	CP_Sound_Free(sfxCustomerEnter);
 
 	for (int i = 0; i < NUM_CHARACTER_ASSETS; i++)
 	{
