@@ -1,6 +1,9 @@
 #pragma once
 #include "ingredients.h"
 
+#ifndef SANDWICH_H
+#define SANDWICH_H
+
 #define MAX_SANDWICH_SIZE			8
 #define MIN_SANDWICH_SIZE			5
 extern int sandwichOrder;		// order in which sandwich ingredients will be drawn
@@ -22,3 +25,5 @@ void RenderSandwich(void);
 void MakeSandwich(int customerCount);
 void RemoveIngredient(void);
 void UpdateAndRenderDiscards(void);
+
+#endif // SANDWICH_H

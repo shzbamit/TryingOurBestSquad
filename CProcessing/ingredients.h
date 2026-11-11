@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef INGREDIENTS_H
+#define INGREDIENTS_H
+
 #include "animations.h"
 
 struct Ingredient
@@ -36,3 +40,5 @@ extern struct Ingredient bread, tomato, lettuce, cheese, ham;
 extern struct Ingredient ingredients[INGREDIENT_COUNT];// array for storing the ref to actual ingredient images
 
 void InitializeIngredientList(void);
+
+#endif // INGREDIENTS_H
