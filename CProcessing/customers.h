@@ -18,7 +18,7 @@
 #define CUSTOMER_PLACEMENT_INTERVAL 260.0f
 
 // Animations
-#define CUSTOMER_MOVE_SPEED			5.0f
+#define CUSTOMER_MOVE_SPEED			2.0f
 
 // Patience 
 #define MIN_PATIENCE				10.0f

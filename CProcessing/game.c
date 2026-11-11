@@ -45,6 +45,9 @@ char timerText[6];
 
 clock_t next_tick;
 
+// Pause
+int isPaused = 0;
+
 
 void Game_Init(void)
 {
@@ -87,6 +90,12 @@ void Game_Init(void)
 
 void Game_Update(void)
 {
+	// Check if space is pressed to pause game
+	if (CP_Input_KeyTriggered(KEY_SPACE))
+	{
+		isPaused = !isPaused;
+	}
+
 	CP_Graphics_ClearBackground(BG_COLOUR); // Don't move this, this is for clearing the canvas at the start of every update
 
 	// Render game assets here ==========================================================================================================
@@ -100,16 +109,18 @@ void Game_Update(void)
 	// Draw customers in the queue
 	for (int i = 0; i < customerCount; i++)
 	{
-		// Interpolate coordinates via your custom function
-		CP_Vector positionFrame = MoveImage(
-			customers[i].animState.animSpeed * CP_System_GetDt(),
-			customers[i].animState.startPos,
-			customers[i].animState.targetPos,
-			&customers[i].animState.animationProgress
-		);
+		if (!isPaused) {
+			// Interpolate coordinates via your custom function
+			CP_Vector positionFrame = MoveImage(
+				customers[i].animState.animSpeed * CP_System_GetDt(),
+				customers[i].animState.startPos,
+				customers[i].animState.targetPos,
+				&customers[i].animState.animationProgress
+			);
 
-		// Store frame updates so downstream math remains fully synced
-		customers[i].animState.currentPos = positionFrame;
+			// Store frame updates so downstream math remains fully synced
+			customers[i].animState.currentPos = positionFrame;
+		}
 
 		// Calculate shaking movement
 		float shakeOffset = 0.0f;
@@ -268,123 +279,145 @@ void Game_Update(void)
 
 	// End of asset renders =====================================================================================================================
 
-	// Controls for making the sandwich
-	MakeSandwich(customerCount);
+	if (!isPaused) {
+		// Controls for making the sandwich
+		MakeSandwich(customerCount);
 
-	// Removes ingredient by backspace
-	if (customerCount > 0 && CP_Input_KeyTriggered(KEY_BACKSPACE))
-	{
-		if (sandwichOrder > 0)
+		// Removes ingredient by backspace
+		if (customerCount > 0 && CP_Input_KeyTriggered(KEY_BACKSPACE))
 		{
-			RemoveIngredient();
-			CP_Sound_PlayAdvanced(sfxDiscard, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
+			if (sandwichOrder > 0)
+			{
+				RemoveIngredient();
+				CP_Sound_PlayAdvanced(sfxDiscard, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
 
-			// Remove ingredient from the active sandwich stack instantly
-			sandwichOrder--;
-			score += SCORE_REMOVE_INGREDIENT;
+				// Remove ingredient from the active sandwich stack instantly
+				sandwichOrder--;
+				score += SCORE_REMOVE_INGREDIENT;
+				score = CP_Math_ClampInt(score, 0, INT_MAX); // clamps score to 0
+			}
+		}
+
+		// Removes all ingredients from the current sandwich 
+		if (customerCount > 0 && CP_Input_KeyTriggered(KEY_DELETE))
+		{
+			if (sandwichOrder > 0)
+			{
+				CP_Sound_PlayAdvanced(sfxDiscard, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
+			}
+
+			while (sandwichOrder > 0)
+			{
+				RemoveIngredient();
+
+				sandwichOrder--;
+				score += SCORE_REMOVE_INGREDIENT;
+			}
 			score = CP_Math_ClampInt(score, 0, INT_MAX); // clamps score to 0
 		}
-	}
 
-	// Removes all ingredients from the current sandwich 
-	if (customerCount > 0 && CP_Input_KeyTriggered(KEY_DELETE))
-	{
-		if (sandwichOrder > 0)
+
+		sandwichOrder = CP_Math_ClampInt(sandwichOrder, 0, MAX_SANDWICH_SIZE);
+
+		int matchedCustomer = FindMatchingCustomer();
+
+		// If a match is found, complete the order and update the score
+		if (matchedCustomer != -1)
 		{
-			CP_Sound_PlayAdvanced(sfxDiscard, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
-		}
+			score += SCORE_ORDER;
 
-		while (sandwichOrder > 0)
-		{
-			RemoveIngredient();
+			// For bonus points
+			float patienceRatio = customers[matchedCustomer].patience / customers[matchedCustomer].maxPatience; // Calculate the ratio of remaining patience to maximum patience
+			int speedBonus = (int)(SCORE_SPEED_BONUS_MAX * patienceRatio); // Calculate the speed bonus based on the patience ratio
+			score += speedBonus;
 
-			sandwichOrder--;
-			score += SCORE_REMOVE_INGREDIENT;
-		}
-		score = CP_Math_ClampInt(score, 0, INT_MAX); // clamps score to 0
-	}
-
-
-	sandwichOrder = CP_Math_ClampInt(sandwichOrder, 0, MAX_SANDWICH_SIZE);
-
-	int matchedCustomer = FindMatchingCustomer();
-
-	// If a match is found, complete the order and update the score
-	if (matchedCustomer != -1)
-	{
-		score += SCORE_ORDER;
-
-		// For bonus points
-		float patienceRatio = customers[matchedCustomer].patience / customers[matchedCustomer].maxPatience; // Calculate the ratio of remaining patience to maximum patience
-		int speedBonus = (int)(SCORE_SPEED_BONUS_MAX * patienceRatio); // Calculate the speed bonus based on the patience ratio
-		score += speedBonus;
-
-		score = CP_Math_ClampInt(score, 0, INT_MAX);
-
-		CompleteCustomer(matchedCustomer); // Remove the customer from the queue and mark them as leaving
-		CP_Sound_PlayAdvanced(sfxServe, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
-
-		sandwichOrder = 0;
-	}
-
-	// Patience countdown
-	for (int i = 0; i < customerCount; i++)
-	{
-		customers[i].patience -= CP_System_GetDt() * PATIENCE_SPEED;
-
-		// Play the warning sound once, when the customer has 4 secs left
-		float secondsLeft = customers[i].patience / PATIENCE_SPEED;
-
-		if (!customers[i].shakeSoundPlayed && secondsLeft <= 3.0f)
-		{
-			customers[i].shakeSoundPlayed = 1;
-			CP_Sound_PlayAdvanced(sfxLeave, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
-		}
-	}
-
-	// Remove customers whose patience has expired
-	for (int i = customerCount - 1; i >= 0; i--)
-	{
-		if (customers[i].patience <= 0.0f)
-		{
-			score += SCORE_CUSTOMER_LEFT;
 			score = CP_Math_ClampInt(score, 0, INT_MAX);
 
-			CompleteCustomer(i);
+			CompleteCustomer(matchedCustomer); // Remove the customer from the queue and mark them as leaving
+			CP_Sound_PlayAdvanced(sfxServe, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
+
+			sandwichOrder = 0;
 		}
-	}
 
-	// This only updates when score is changed
-	if (score != lastScore) 
-	{
-		snprintf(scoreText, sizeof(scoreText), "%d", score); // Converts score int to char
-		lastScore = score;
-	}
-
-	// Timer check
-	if (clock() >= next_tick && total_seconds >= 0)
-	{
-		total_seconds--;
-		next_tick = clock() + CLOCKS_PER_SEC; // Set target for next second
-
-		// timer countdown sfx plays 
-		if (total_seconds >= 0 && total_seconds <= 10)
+		// Patience countdown
+		for (int i = 0; i < customerCount; i++)
 		{
-			CP_Sound_PlayAdvanced(sfxTick, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
+			customers[i].patience -= CP_System_GetDt() * PATIENCE_SPEED;
+
+			// Play the warning sound once, when the customer has 4 secs left
+			float secondsLeft = customers[i].patience / PATIENCE_SPEED;
+
+			if (!customers[i].shakeSoundPlayed && secondsLeft <= 3.0f)
+			{
+				customers[i].shakeSoundPlayed = 1;
+				CP_Sound_PlayAdvanced(sfxLeave, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
+			}
 		}
 
-		// Exit game if timer ends
-		if (total_seconds < 0) {
+		// Remove customers whose patience has expired
+		for (int i = customerCount - 1; i >= 0; i--)
+		{
+			if (customers[i].patience <= 0.0f)
+			{
+				score += SCORE_CUSTOMER_LEFT;
+				score = CP_Math_ClampInt(score, 0, INT_MAX);
+
+				CompleteCustomer(i);
+			}
+		}
+
+		// This only updates when score is changed
+		if (score != lastScore)
+		{
+			snprintf(scoreText, sizeof(scoreText), "%d", score); // Converts score int to char
+			lastScore = score;
+		}
+
+		// Timer check
+		if (clock() >= next_tick && total_seconds >= 0)
+		{
+			total_seconds--;
+			next_tick = clock() + CLOCKS_PER_SEC; // Set target for next second
+
+			// timer countdown sfx plays 
+			if (total_seconds >= 0 && total_seconds <= 10)
+			{
+				CP_Sound_PlayAdvanced(sfxTick, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
+			}
+
+			// Exit game if timer ends
+			if (total_seconds < 0) {
+				CP_Engine_Terminate();
+			}
+
+			// Render the update
+			minutes = total_seconds / 60;
+			seconds = total_seconds % 60;
+			snprintf(timerText, sizeof(timerText), "%02d:%02d", minutes, seconds); // Converts min/sec int to char
+			fflush(stdout); // Force engine to instantly display timer text
+		}
+	}
+
+	if (isPaused)
+	{
+		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 150));
+		CP_Graphics_DrawRect(0.0f, 0.0f, 1600.0f, 900.0f);
+
+		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
+		CP_Settings_TextSize(60.0f);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+		CP_Font_DrawText("PAUSED", 800.0f, 420.0f);
+
+		CP_Settings_TextSize(25.0f);
+		CP_Font_DrawText("Press SPACE to resume", 800.0f, 490.0f);
+
+		CP_Settings_TextSize(25.0f);
+		CP_Font_DrawText("Press ESC to quit", 800.0f, 530.0f);
+
+		if (CP_Input_KeyTriggered(KEY_ESCAPE)) {
 			CP_Engine_Terminate();
 		}
-
-		// Render the update
-		minutes = total_seconds / 60;
-		seconds = total_seconds % 60;
-		snprintf(timerText, sizeof(timerText), "%02d:%02d", minutes, seconds); // Converts min/sec int to char
-		fflush(stdout); // Force engine to instantly display timer text
 	}
-
 }
 
 void Game_Exit(void)
