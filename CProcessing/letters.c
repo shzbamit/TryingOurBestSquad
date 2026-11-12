@@ -4,6 +4,32 @@ int y_position = 580;
 struct letterState start[5];
 struct letterState quit[4];
 
+//detects which key is being pressed if it does not match the struct array
+void wrongKey(struct letterState arr[], int size, int* progress)
+{
+	//loop to check which key was pressed
+	for (int k = KEY_A; k <= KEY_Z; k++)
+	{
+		if (CP_Input_KeyTriggered(k))
+		{
+			resetWords(arr, size, progress); //calls the function to reset the words to default state
+			break;
+		}
+	}
+}
+
+//Reseting the wordsto default color if wrong key is pressed
+void resetWords(struct letterState arr[], int size, int* progress)
+{
+	for (int i = 0; i < size; i++)
+	{
+		arr[i].r = 0;
+		arr[i].g = 0;
+		arr[i].b = 0;
+	}
+	*progress = 0;
+}
+
 void initializeLetters(void)
 {
 	//Start text
