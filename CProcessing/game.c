@@ -178,7 +178,7 @@ void Game_Update(void)
 		);
 
 		// Patience timer bar above the customer 
-		if (!customers[i].animState.isAnimating && customers[i].animState.currentPos.x + customers[i].width / 2.0f <= (float)CP_System_GetWindowWidth())
+		if (!customers[i].animState.isAnimating && customers[i].animState.currentPos.x + customers[i].width / 2.0f <= (float)CP_System_GetWindowWidth()) // When the customer is not leaving & customer's right edge is fully on screen
 		{
 			float ratio = customers[i].patience / customers[i].maxPatience;
 			float barWidth = customers[i].width;
@@ -295,10 +295,17 @@ void Game_Update(void)
 	if (total_seconds <= 30)
 	{
 		// Toggles every 0.25s, so it blinks about twice per second
+		// CP_System_GetSeconds() = seconds since the game started (e.g. 12.37)
+		// * 4.0     -> the number goes up by 1 every 0.25 seconds
+		// (int)     -> removes the decimal part (49.48 becomes 49)
+		// % 2       -> remainder after dividing by 2, so it alternates 0, 1, 0, 1...
+		// == 0      -> true when the remainder is 0, false when it is 1
+		// Result: flashOn switches between true and false every 0.25 seconds
 		int flashOn = ((int)(CP_System_GetSeconds() * 4.0) % 2) == 0;
 
 		if (flashOn)
 		{
+			// Change the drawing colour to red (red, green, blue, opacity)
 			CP_Settings_Fill(CP_Color_Create(220, 50, 50, 255));
 		}
 		// else: stays SCORE_TEXT_COLOR (grey), which creates the flash
@@ -340,7 +347,7 @@ void Game_Update(void)
 				CP_Sound_PlayAdvanced(sfxDiscard, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
 			}
 
-			while (sandwichOrder > 0)
+			while (sandwichOrder > 0) // Repeats until it is no longer true
 			{
 				RemoveIngredient();
 
@@ -374,16 +381,29 @@ void Game_Update(void)
 		}
 
 		// Patience countdown
-		for (int i = 0; i < customerCount; i++)
+		for (int i = 0; i < customerCount; i++) // Go through each customer in the queue, one by one
 		{
+			// CP_System_GetDt() = time since the last frame (e.g. 0.016 seconds)
+			// PATIENCE_SPEED = 0.5, so patience goes down by 0.5 every real second
+			// Using dt keeps the speed the same on fast and slow computers
 			customers[i].patience -= CP_System_GetDt() * PATIENCE_SPEED;
 
 			// Play the warning sound once, when the customer has 4 secs left
+			// Patience drains at 0.5 per second, so patience is NOT the same as seconds.
+			// Dividing by PATIENCE_SPEED converts it into real seconds left.
+			// Example: patience 1.5 / 0.5 = 3 seconds left
 			float secondsLeft = customers[i].patience / PATIENCE_SPEED;
 
+			// Play the warning sound only if BOTH are true:
+			// 1) the sound has not been played yet for this customer (! means "not")
+			// 2) the customer has 3 seconds or less left
 			if (!customers[i].shakeSoundPlayed && secondsLeft <= 3.0f)
 			{
+				// Mark the sound as played FIRST, so this block never runs again for this customer.
+				// Without this, the sound would replay every frame (about 60 times a second).
 				customers[i].shakeSoundPlayed = 1;
+
+				// Play the warning sound once (volume, pitch, looping off, sound group)
 				CP_Sound_PlayAdvanced(sfxLeave, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
 			}
 		}
