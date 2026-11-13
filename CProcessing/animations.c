@@ -42,13 +42,13 @@ CP_Vector TossImage(CP_Vector start, CP_Vector target, float height, float progr
 {
     CP_Vector result;
 
-    // 1. Linear horizontal travel (steady movement left/right)
+    // Set the x axis using smooth lerp and animation progress
     result.x = CP_Math_LerpFloat(start.x, target.x, progress);
 
-    // 2. Linear vertical travel base
+    // Set the y axis using smooth lerp and animation progress (without arc offset yet)
     float baselineY = CP_Math_LerpFloat(start.y, target.y, progress);
 
-    // 3. Parabolic arc offset: progress goes 0.0 -> 0.5 -> 1.0
+    // Parabolic arc offset: progress goes 0.0 -> 0.5 -> 1.0
     // (4 * progress * (1 - progress)) creates a perfect curve peaking at 1.0 in the middle
     float arcOffset = 4.0f * progress * (1.0f - progress) * height;
 

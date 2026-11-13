@@ -37,8 +37,8 @@ extern struct Ingredient bread, tomato, lettuce, cheese, ham;
 #define INGREDIENT_TOSS_HEIGHT 200.0f // Height of the throw arc
 #define INGREDIENT_TOSS_HEIGHT_MAX 700.0f 
 
-extern struct Ingredient ingredients[INGREDIENT_COUNT];// array for storing the ref to actual ingredient images
+extern struct Ingredient ingredients[INGREDIENT_COUNT]; // array for storing the ref to actual ingredients at runtime
 
-void InitializeIngredientList(void);
+void InitializeIngredientList(void); //ran in game_init() to initialize ingredient properties
 
 #endif // INGREDIENTS_H
