@@ -180,15 +180,24 @@ void Game_Update(void)
 		// Patience timer bar above the customer 
 		if (!customers[i].animState.isAnimating && customers[i].animState.currentPos.x + customers[i].width / 2.0f <= (float)CP_System_GetWindowWidth()) // When the customer is not leaving & customer's right edge is fully on screen
 		{
+			// ratio = fraction of patience left (1.0 = full, 0.0 = empty)
 			float ratio = customers[i].patience / customers[i].maxPatience;
+
+			// The bar is as wide as the customer image and 15 pixels tall
 			float barWidth = customers[i].width;
 			float barHeight = 15.0f;
+
+			// Customers are drawn from their centre, but the bar is drawn from its top - left corner, so subtract half the width to find the left edge
 			float barX = customers[i].animState.currentPos.x - barWidth / 2.0f;
+
+			// Start at the customer's centre, go up half their height to reach the top of the image, then go up 25 more pixels so the bar floats just above their head
 			float barY = customers[i].animState.currentPos.y - customers[i].height / 2.0f - 25.0f;
 
+			// Draw rectangles from their top-left corner, with no outline
 			CP_Settings_RectMode(CP_POSITION_CORNER);
 			CP_Settings_NoStroke();
 
+			// Draw the grey background track at full width (this is the "empty" part of the bar)
 			CP_Settings_Fill(CP_Color_Create(200, 200, 200, 255));
 			CP_Graphics_DrawRect(barX, barY, barWidth, barHeight);
 
@@ -204,6 +213,9 @@ void Game_Update(void)
 			{
 				CP_Settings_Fill(CP_Color_Create(220, 50, 50, 255));
 			}
+
+			// Draw the coloured bar on top of the grey track
+			// Width = full width * ratio, so it gets shorter as patience runs out
 			CP_Graphics_DrawRect(barX, barY, barWidth * ratio, barHeight);
 		}
 	}
