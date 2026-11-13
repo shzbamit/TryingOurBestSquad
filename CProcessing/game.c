@@ -10,6 +10,7 @@
 #include "ingredients.h"
 #include "sandwich.h"
 #include "customers.h"
+#include "letters.h"
 
 
 // Assets
@@ -38,19 +39,47 @@ char scoreText[12];
 
 // Timer
 int total_seconds =					300;	// 5 minutes
-
+//int total_seconds =					5;	// remove after testing
 int minutes =						0;
 int seconds =						0;
 char timerText[6];
-
+int initialTime =					300; //used for reseting the time when restarting the game
 clock_t next_tick;
 
 // Pause
 int isPaused = 0;
 
+//gameEnd
+int gameEnd = 0;
+int restartProgress = 0;
+int resumeProgress = 0;
+static int quitProgress = 0;
+
+//game state
+static int gameState = 1;
 
 void Game_Init(void)
 {
+	resume[0] = (struct letterState){ 255,255,255,KEY_R };
+	resume[1] = (struct letterState){ 255,255,255,KEY_E };
+	resume[2] = (struct letterState){ 255,255,255,KEY_S };
+	resume[3] = (struct letterState){ 255,255,255,KEY_U };
+	resume[4] = (struct letterState){ 255,255,255,KEY_M };
+	resume[5] = (struct letterState){ 255,255,255,KEY_E };
+
+	quit[0] = (struct letterState){ 255,255,255,KEY_Q };
+	quit[1] = (struct letterState){ 255,255,255,KEY_U };
+	quit[2] = (struct letterState){ 255,255,255,KEY_I };
+	quit[3] = (struct letterState){ 255,255,255,KEY_T };
+
+	restart[0] = (struct letterState){ 255,255,255,KEY_R };
+	restart[1] = (struct letterState){ 255,255,255,KEY_E };
+	restart[2] = (struct letterState){ 255,255,255,KEY_S };
+	restart[3] = (struct letterState){ 255,255,255,KEY_T };
+	restart[4] = (struct letterState){ 255,255,255,KEY_A };
+	restart[5] = (struct letterState){ 255,255,255,KEY_R };
+	restart[6] = (struct letterState){ 255,255,255,KEY_T };
+
 	// Load Assets
 	InitializeIngredientList();
 
@@ -94,6 +123,11 @@ void Game_Update(void)
 	if (CP_Input_KeyTriggered(KEY_SPACE))
 	{
 		isPaused = !isPaused;
+	}
+
+	if (total_seconds < 0)
+	{
+		gameEnd = 1;
 	}
 
 	CP_Graphics_ClearBackground(BG_COLOUR); // Don't move this, this is for clearing the canvas at the start of every update
@@ -279,7 +313,7 @@ void Game_Update(void)
 
 	// End of asset renders =====================================================================================================================
 
-	if (!isPaused) {
+	if (!isPaused && gameEnd == 0) {
 		// Controls for making the sandwich
 		MakeSandwich(customerCount);
 
@@ -385,11 +419,6 @@ void Game_Update(void)
 				CP_Sound_PlayAdvanced(sfxTick, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
 			}
 
-			// Exit game if timer ends
-			if (total_seconds < 0) {
-				CP_Engine_Terminate();
-			}
-
 			// Render the update
 			minutes = total_seconds / 60;
 			seconds = total_seconds % 60;
@@ -397,8 +426,91 @@ void Game_Update(void)
 			fflush(stdout); // Force engine to instantly display timer text
 		}
 	}
+	
+	// Exit game if timer ends
+	if (gameEnd == 1)
+	{
+		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+		CP_Graphics_DrawRect(0.0f, 0.0f, 1600.0f, 900.0f);
 
-	if (isPaused)
+		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
+		CP_Settings_TextSize(150.0f);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_TOP);
+		CP_Font_DrawText("GAME OVER", 800.0f, 100.0f);
+
+		CP_Settings_TextSize(40.0f);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_TOP);
+		if (score >= 10000)
+		{
+			CP_Font_DrawText("You definitely cheated", 800.0f, 230.0f);
+		}
+
+		else if (500 <= score && score < 10000)
+		{
+			CP_Font_DrawText("Good Job!", 800.0f, 230.0f);
+		}
+
+		else
+		{
+			CP_Font_DrawText("Skill Issue lol", 800.0f, 230.0f);
+		}
+
+		CP_Settings_TextSize(100.0f);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+		CP_Font_DrawText("Your Score:", 800.0f, 350.0f);
+		CP_Font_DrawText(scoreText, 800.0f, 430.0f);
+
+		endScreen();
+	}
+
+	if (CP_Input_KeyTriggered(restart[restartProgress].keybind))
+	{
+		resetWordsWhite(quit, 4, &quitProgress); //resets quit 
+		restart[restartProgress].r = 0;
+		restart[restartProgress].b = 0;
+		restartProgress++;
+	}
+
+	else if (CP_Input_KeyTriggered(quit[quitProgress].keybind))
+	{
+		resetWordsWhite(restart, 7, &restartProgress);
+		quit[quitProgress].g = 0;
+		quit[quitProgress].b = 0;
+		quitProgress++;
+	}
+	else
+	{
+		wrongKey(restart, 7, &restartProgress, gameState);
+		wrongKey(quit, 4, &quitProgress, gameState);
+	}
+
+	if (restartProgress == 7)
+	{
+		while (sandwichOrder > 0)
+		{
+			RemoveIngredient();
+			sandwichOrder--;
+		}
+		gameEnd = 0;
+		restartProgress = 0;
+		quitProgress = 0;
+		score = 0;
+		total_seconds = initialTime;
+		CP_Engine_SetNextGameStateForced(Game_Init, Game_Update, Game_Exit);
+	}
+
+	if (quitProgress == 4)
+	{
+		CP_Engine_Terminate();
+	}
+
+	if (resumeProgress == 6)
+	{
+		resumeProgress = 0;
+		isPaused = !isPaused;
+	}
+
+	if (isPaused && gameEnd == 0)
 	{
 		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 150));
 		CP_Graphics_DrawRect(0.0f, 0.0f, 1600.0f, 900.0f);

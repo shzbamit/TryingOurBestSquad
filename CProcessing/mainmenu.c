@@ -13,9 +13,9 @@ float text_TypeOff_x = 550;
 float text_TypeOff_y = 300;
 
 int startProgress = 0; // To help check against current key triggered for start
-int quitProgress = 0; //To help check against current key triggered for quit
+static int quitProgress = 0; //To help check against current key triggered for quit
 
-
+static int gameState = 0;
 
 void Main_Menu_Init(void)
 {
@@ -48,22 +48,22 @@ void Main_Menu_Update(void)
 	CP_Font_DrawText("Kitchen Rush", text_TypeOff_x - 100, text_TypeOff_y + 150);
 
 	
-	if (startProgress < 5 && CP_Input_KeyTriggered(start[startProgress].keybind))
+	if (CP_Input_KeyTriggered(start[startProgress].keybind))
 	{
-		resetWords(quit, 4, &quitProgress); //resets quit 
+		resetWordsBlack(quit, 4, &quitProgress); //resets quit 
 		start[startProgress].g = 255;
 		startProgress++;
 	}
-	else if (quitProgress < 4 && CP_Input_KeyTriggered(quit[quitProgress].keybind))
+	else if (CP_Input_KeyTriggered(quit[quitProgress].keybind))
 	{
-		resetWords(start, 5, &startProgress);
+		resetWordsBlack(start, 5, &startProgress);
 		quit[quitProgress].r = 255;
 		quitProgress++;
 	}
 	else
 	{
-		wrongKey(start, 5, &startProgress);
-		wrongKey(quit, 4, &quitProgress);
+		wrongKey(start, 5, &startProgress, gameState);
+		wrongKey(quit, 4, &quitProgress, gameState);
 	}
 
 	if (startProgress == 5)
