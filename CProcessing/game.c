@@ -263,6 +263,9 @@ void Game_Update(void)
 			case 2: keyText[0] = 'L'; break;
 			case 3: keyText[0] = 'C'; break;
 			case 4: keyText[0] = 'H'; break;
+			case 5: keyText[0] = 'E'; break;
+			case 6: keyText[0] = 'S'; break;
+			case 7: keyText[0] = 'M'; break;
 			default: keyText[0] = '?'; break;
 			}
 
