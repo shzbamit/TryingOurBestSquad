@@ -1,6 +1,6 @@
 #include "ingredients.h"
 
-struct Ingredient bread, tomato, lettuce, cheese, ham; // Initialize all the ingredients under struct Ingredient
+struct Ingredient bread, tomato, lettuce, cheese, ham, egg, sausage, mayo; // Initialize all the ingredients under struct Ingredient
 struct Ingredient ingredients[INGREDIENT_COUNT]; // array for storing the ref to actual ingredients at runtime
 
 // Allocate the actual variables exactly once here:
@@ -42,10 +42,34 @@ void InitializeIngredientList(void)
 	ham.animState.animationProgress = 0.0f;
 	ham.animState.isAnimating = 0;
 
+	egg.itemID = 5; 
+	egg.name = "Egg";
+	egg.asset = CP_Image_Load("Assets/egg.png");
+	egg.keybind = KEY_E; 
+	egg.animState.animationProgress = 0.0f;
+	egg.animState.isAnimating = 0;
+
+	sausage.itemID = 6; 
+	sausage.name = "Sausage"; 
+	sausage.asset = CP_Image_Load("Assets/sausage.png");
+	sausage.keybind = KEY_S;
+	sausage.animState.animationProgress = 0.0f;
+	sausage.animState.isAnimating = 0;
+
+	mayo.itemID = 7; 
+	mayo.name = "Mayo"; 
+	mayo.asset = CP_Image_Load("Assets/mayo.png");
+	mayo.keybind = KEY_M;
+	mayo.animState.animationProgress = 0.0f;
+	mayo.animState.isAnimating = 0;
+
 	//-------------------------------- ASSIGNING THE VARIABLES TO INGREDIENTS[] ----------------------------------
 	ingredients[0] = bread;
 	ingredients[1] = tomato;
 	ingredients[2] = lettuce;
 	ingredients[3] = cheese;
 	ingredients[4] = ham;
+	ingredients[5] = egg;
+	ingredients[6] = sausage;
+	ingredients[7] = mayo;
 }
