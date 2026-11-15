@@ -9,7 +9,7 @@
 
 // Customer macros:
 // Customer
-#define MAX_CUSTOMERS				50
+#define MAX_CUSTOMERS				5
 #define CUSTOMERS_SHOWN				3
 #define NUM_CHARACTER_ASSETS		9
 

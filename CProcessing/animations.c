@@ -29,7 +29,7 @@ float ShakeCustomer(float patience, float maxPatience, float* shakeTimer)
         *shakeTimer += CP_System_GetDt();
 
 		// Calculate side to side movement using a sine wave
-        return sinf(*shakeTimer * 35.0f) * 8.0f;
+        return sinf(*shakeTimer * 27.0f) * 8.0f;
     }
 
     // Stop shaking when patience is above red level
