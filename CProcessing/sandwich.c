@@ -62,6 +62,9 @@ void MakeSandwich(int customerCount)
 		else if (CP_Input_KeyTriggered(lettuce.keybind)) { selectedIngredient = lettuce; keyPressed = 1; }
 		else if (CP_Input_KeyTriggered(cheese.keybind)) { selectedIngredient = cheese; keyPressed = 1; }
 		else if (CP_Input_KeyTriggered(ham.keybind)) { selectedIngredient = ham; keyPressed = 1; }
+		else if (CP_Input_KeyTriggered(egg.keybind)) { selectedIngredient = egg; keyPressed = 1; }
+		else if (CP_Input_KeyTriggered(sausage.keybind)) { selectedIngredient = sausage; keyPressed = 1; }
+		else if (CP_Input_KeyTriggered(mayo.keybind)) { selectedIngredient = mayo; keyPressed = 1; }
 
 		if (keyPressed)
 		{

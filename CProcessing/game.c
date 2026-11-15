@@ -575,6 +575,9 @@ void Game_Exit(void)
 	CP_Image_Free(lettuce.asset);
 	CP_Image_Free(cheese.asset);
 	CP_Image_Free(ham.asset);
+	CP_Image_Free(egg.asset);
+	CP_Image_Free(sausage.asset);
+	CP_Image_Free(mayo.asset);
 	CP_Font_Free(myFont);
 	CP_Sound_Free(bgm);
 	CP_Sound_Free(sfxServe);

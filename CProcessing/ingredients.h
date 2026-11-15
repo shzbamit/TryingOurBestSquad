@@ -16,9 +16,9 @@ struct Ingredient
 
 // extern stops multiple copies from existing when multiple scripts reference ingredients.h
 // Ingredients
-extern struct Ingredient bread, tomato, lettuce, cheese, ham;
+extern struct Ingredient bread, tomato, lettuce, cheese, ham, egg, sausage, mayo;
 
-#define INGREDIENT_COUNT	5
+#define INGREDIENT_COUNT	8
 #define INGREDIENT_SIZE		200.0f
 
 // For target position (where the sandwich will be assembled)
