@@ -82,7 +82,7 @@ void Game_Init(void)
 
 	// Load foreground and background assets
 	background = CP_Image_Load("Assets/Backgroud.png");
-	foreground = CP_Image_Load("Assets/Foreground .png");
+	foreground = CP_Image_Load("Assets/foreground.png");
 
 	myFont = CP_Font_Load("Assets/Exo2-Regular.ttf");
 
@@ -566,7 +566,7 @@ void Game_Exit(void)
 	CP_Sound_Free(sfxCustomerEnter);
 
 	CP_Image_Free("Assets/Backgroud.png");
-	CP_Image_Free("Assets/Foreground .png");
+	CP_Image_Free("Assets/foreground.png");
 
 	for (int i = 0; i < NUM_CHARACTER_ASSETS; i++)
 	{
