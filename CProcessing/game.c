@@ -11,6 +11,7 @@
 #include "sandwich.h"
 #include "customers.h"
 #include "letters.h"
+#include "leaderboard.h"
 
 
 // Assets
@@ -41,8 +42,8 @@ char scoreText[12];
 #define SCORE_CUSTOMER_LEFT			-50		// points lost when a customer leaves 
 
 // Timer
-int total_seconds =					300;	// 5 minutes
-//int total_seconds =					5;	// remove after testing
+//int total_seconds =					300;	// 5 minutes
+int total_seconds =					50;	// remove after testing
 int minutes =						0;
 int seconds =						0;
 char timerText[6];
@@ -60,6 +61,8 @@ static int quitProgress = 0;
 
 //game state
 static int gameState = 1;
+
+static int leaderboardUpdated = 0;
 
 void Game_Init(void)
 {
@@ -93,6 +96,8 @@ void Game_Init(void)
 	sfxLeave = CP_Sound_Load("Assets/leave.mp3");
 	sfxTick = CP_Sound_Load("Assets/tick.mp3");
 	sfxCustomerEnter = CP_Sound_Load("Assets/CustomerEnter.mp3");
+
+	leaderboardUpdated = 0;
 
 	srand((unsigned int)time(NULL));
 
@@ -452,6 +457,12 @@ void Game_Update(void)
 			fflush(stdout); // Force engine to instantly display timer text
 		}
 	}
+
+	if (gameEnd == 1 && leaderboardUpdated == 0)
+	{
+		UpdateLeaderboard(score);
+		leaderboardUpdated = 1;
+	}
 	
 	// Exit game if timer ends
 	if (gameEnd == 1)
@@ -483,8 +494,10 @@ void Game_Update(void)
 
 		CP_Settings_TextSize(100.0f);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Font_DrawText("Your Score:", 800.0f, 350.0f);
-		CP_Font_DrawText(scoreText, 800.0f, 430.0f);
+		CP_Font_DrawText("Your Score:", 1200.0f, 350.0f);
+		CP_Font_DrawText(scoreText, 1200.0f, 430.0f);
+
+		DrawLeaderboard();
 
 		endScreen();
 	}

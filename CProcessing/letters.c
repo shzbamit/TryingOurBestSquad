@@ -1,7 +1,7 @@
 #include "letters.h"
 float x_position = 700;
 float y_position = 580;
-float endX_position = 670;
+float endX_position = 1050;
 float r_x_position = 800;
 struct letterState start[5];
 struct letterState quit[4];
@@ -98,13 +98,13 @@ void endScreen(void)
 
 	//Quit text
 	CP_Settings_Fill(CP_Color_Create(quit[0].r, quit[0].g, quit[0].b, 255));
-	CP_Font_DrawText("Q", x_position + 50, y_position + 100);
+	CP_Font_DrawText("Q", endX_position + 50, y_position + 100);
 	CP_Settings_Fill(CP_Color_Create(quit[1].r, quit[1].g, quit[1].b, 255));
-	CP_Font_DrawText("U", x_position + 100, y_position + 100);
+	CP_Font_DrawText("U", endX_position + 100, y_position + 100);
 	CP_Settings_Fill(CP_Color_Create(quit[2].r, quit[2].g, quit[2].b, 255));
-	CP_Font_DrawText("I", x_position + 140, y_position + 100);
+	CP_Font_DrawText("I", endX_position + 140, y_position + 100);
 	CP_Settings_Fill(CP_Color_Create(quit[3].r, quit[3].g, quit[3].b, 255));
-	CP_Font_DrawText("T", x_position + 170, y_position + 100);
+	CP_Font_DrawText("T", endX_position + 170, y_position + 100);
 }
 
 void pauseScreen(void)

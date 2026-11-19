@@ -6,6 +6,6 @@
 #define MAX_SCORES 5
 
 void UpdateLeaderboard(int currentScore);
-void DrawLeaderboard(int currentScore);
+void DrawLeaderboard(void);
 
 #endif

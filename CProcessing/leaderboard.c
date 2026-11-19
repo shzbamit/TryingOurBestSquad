@@ -11,7 +11,8 @@ static int total_score_count = 0;
 void UpdateLeaderboard(int currentScore)
 {
     player_position = -1;
-    FILE* leaderboardTXT = fopen("leaderboard.txt", "r");
+    FILE* leaderboardTXT = NULL;
+    fopen_s(&leaderboardTXT, "leaderboard.txt", "r");
 
     total_score_count = 0;
 
@@ -20,7 +21,7 @@ void UpdateLeaderboard(int currentScore)
     {
         int saved_count = 0;
 
-        if (fscanf(leaderboardTXT, "%d", &saved_count) == 1)
+        if (fscanf_s(leaderboardTXT, "%d", &saved_count) == 1)
         {
             // Prevent reading more than MAX SCORES
             if (saved_count > MAX_SCORES) {
@@ -29,7 +30,7 @@ void UpdateLeaderboard(int currentScore)
 
             for (int i = 0; i < saved_count; ++i)
             {
-                if (fscanf(leaderboardTXT, "%d", &leaderboard[i]) == 1){
+                if (fscanf_s(leaderboardTXT, "%d", &leaderboard[i]) == 1){
                     total_score_count++;
                 }
                 else {
@@ -74,7 +75,8 @@ void UpdateLeaderboard(int currentScore)
     }
 
 	// store the updated leaderboard back to the file
-    leaderboardTXT = fopen("leaderboard.txt", "w");
+    leaderboardTXT = NULL;
+    fopen_s(&leaderboardTXT, "leaderboard.txt", "w");
 
     if (leaderboardTXT != NULL)
     {
@@ -92,16 +94,14 @@ void UpdateLeaderboard(int currentScore)
 
 void DrawLeaderboard(void)
 {
-    CP_Settings_TextSize(32);
-
-    CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
-
     CP_Settings_TextSize(100.0f);
     CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-    CP_Font_DrawText("LEADERBOARD", 650.0f, 250.0f);
+    CP_Font_DrawText("LEADERBOARD", 400.0f, 350.0f);
+
+    CP_Settings_TextSize(70.0f);
 
     if (total_score_count == 0){
-        CP_Font_DrawText("No leaderboard yet!", 650.0f, 250.0f);
+        CP_Font_DrawText("No leaderboard yet!", 400.0f, 450.0f);
     }
     else {
         char scoreText[50];
@@ -109,13 +109,13 @@ void DrawLeaderboard(void)
         for (int i = 0; i < total_score_count; ++i)
         {
             if (i == player_position){
-                sprintf(scoreText, "%d. %d (You!)", i + 1, leaderboard[i]);
+                sprintf_s(scoreText, sizeof(scoreText), "%d. %d (You!)", i + 1, leaderboard[i]);
             }
             else {
-                sprintf(scoreText, "%d. %d", i + 1, leaderboard[i]);
+                sprintf_s(scoreText, sizeof(scoreText), "%d. %d", i + 1, leaderboard[i]);
             }
 
-            CP_Font_DrawText(scoreText, 650.0f, 320.0f + i * 50.0f);
+            CP_Font_DrawText(scoreText, 400.0f, 450.0f + i * 50.0f);
         }
     }
 }
