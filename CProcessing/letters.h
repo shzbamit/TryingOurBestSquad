@@ -12,8 +12,10 @@ extern struct letterState quit[4];
 extern struct letterState restart[7];
 struct letterState resume[6];
 
+void gameStructInitialization(void);
 void initializeLetters(void);
 void endScreen(void);
+void pauseScreen(void);
 void resetWordsBlack(struct letterState arr[], int size, int* progress);
 void resetWordsWhite(struct letterState arr[], int size, int* progress);
 void wrongKey(struct letterState arr[], int size, int* progress, int gameState);

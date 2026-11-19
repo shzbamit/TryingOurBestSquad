@@ -1,10 +1,12 @@
 #include "letters.h"
-int x_position = 700;
-int y_position = 580;
-int endX_position = 670;
+float x_position = 700;
+float y_position = 580;
+float endX_position = 670;
+float r_x_position = 800;
 struct letterState start[5];
 struct letterState quit[4];
 struct letterState restart[7];
+struct letterState resume[6];
 
 //detects which key is being pressed if it does not match the struct array
 void wrongKey(struct letterState arr[], int size, int* progress, int gameState)
@@ -103,4 +105,46 @@ void endScreen(void)
 	CP_Font_DrawText("I", x_position + 140, y_position + 100);
 	CP_Settings_Fill(CP_Color_Create(quit[3].r, quit[3].g, quit[3].b, 255));
 	CP_Font_DrawText("T", x_position + 170, y_position + 100);
+}
+
+void pauseScreen(void)
+{
+	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 150));
+	CP_Graphics_DrawRect(0.0f, 0.0f, 1600.0f, 900.0f);
+
+	CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
+	CP_Settings_TextSize(60.0f);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+	CP_Font_DrawText("PAUSED", 800.0f, 420.0f);
+
+	CP_Settings_TextSize(25.0f);
+	CP_Font_DrawText("Type        to resume", 800.0f, 490.0f);
+	CP_Settings_Fill(CP_Color_Create(resume[0].r, resume[0].g, resume[0].b, 255));
+	CP_Font_DrawText("R", r_x_position, 490.0f);
+
+	CP_Settings_TextSize(25.0f);
+	CP_Font_DrawText("type      to quit", 800.0f, 530.0f);
+}
+
+void gameStructInitialization()
+{
+	resume[0] = (struct letterState){ 255,255,255,KEY_R };
+	resume[1] = (struct letterState){ 255,255,255,KEY_E };
+	resume[2] = (struct letterState){ 255,255,255,KEY_S };
+	resume[3] = (struct letterState){ 255,255,255,KEY_U };
+	resume[4] = (struct letterState){ 255,255,255,KEY_M };
+	resume[5] = (struct letterState){ 255,255,255,KEY_E };
+
+	quit[0] = (struct letterState){ 255,255,255,KEY_Q };
+	quit[1] = (struct letterState){ 255,255,255,KEY_U };
+	quit[2] = (struct letterState){ 255,255,255,KEY_I };
+	quit[3] = (struct letterState){ 255,255,255,KEY_T };
+
+	restart[0] = (struct letterState){ 255,255,255,KEY_R };
+	restart[1] = (struct letterState){ 255,255,255,KEY_E };
+	restart[2] = (struct letterState){ 255,255,255,KEY_S };
+	restart[3] = (struct letterState){ 255,255,255,KEY_T };
+	restart[4] = (struct letterState){ 255,255,255,KEY_A };
+	restart[5] = (struct letterState){ 255,255,255,KEY_R };
+	restart[6] = (struct letterState){ 255,255,255,KEY_T };
 }

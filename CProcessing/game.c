@@ -22,6 +22,9 @@ CP_Sound sfxLeave;
 CP_Sound sfxTick;
 CP_Sound sfxCustomerEnter;
 
+CP_Image background;
+CP_Image foreground;
+
 // Colours
 #define BG_COLOUR					CP_Color_Create(247, 252, 252, 255) // Background
 #define SCORE_TEXT_COLOR			CP_Color_Create(128, 128, 128, 255) 
@@ -60,39 +63,26 @@ static int gameState = 1;
 
 void Game_Init(void)
 {
-	resume[0] = (struct letterState){ 255,255,255,KEY_R };
-	resume[1] = (struct letterState){ 255,255,255,KEY_E };
-	resume[2] = (struct letterState){ 255,255,255,KEY_S };
-	resume[3] = (struct letterState){ 255,255,255,KEY_U };
-	resume[4] = (struct letterState){ 255,255,255,KEY_M };
-	resume[5] = (struct letterState){ 255,255,255,KEY_E };
-
-	quit[0] = (struct letterState){ 255,255,255,KEY_Q };
-	quit[1] = (struct letterState){ 255,255,255,KEY_U };
-	quit[2] = (struct letterState){ 255,255,255,KEY_I };
-	quit[3] = (struct letterState){ 255,255,255,KEY_T };
-
-	restart[0] = (struct letterState){ 255,255,255,KEY_R };
-	restart[1] = (struct letterState){ 255,255,255,KEY_E };
-	restart[2] = (struct letterState){ 255,255,255,KEY_S };
-	restart[3] = (struct letterState){ 255,255,255,KEY_T };
-	restart[4] = (struct letterState){ 255,255,255,KEY_A };
-	restart[5] = (struct letterState){ 255,255,255,KEY_R };
-	restart[6] = (struct letterState){ 255,255,255,KEY_T };
+	//Load game menu structs
+	gameStructInitialization();
 
 	// Load Assets
 	InitializeIngredientList();
 
 	// Load customer character assets
-	customerAssets[0] = CP_Image_Load("Assets/Character 1.png");
-	customerAssets[1] = CP_Image_Load("Assets/Character 2.png");
-	customerAssets[2] = CP_Image_Load("Assets/Character 3.png");
-	customerAssets[3] = CP_Image_Load("Assets/Character 4.png");
-	customerAssets[4] = CP_Image_Load("Assets/Character 5.png");
-	customerAssets[5] = CP_Image_Load("Assets/Character 6.png");
-	customerAssets[6] = CP_Image_Load("Assets/Character 7.png");
-	customerAssets[7] = CP_Image_Load("Assets/Character 8.png");
-	customerAssets[8] = CP_Image_Load("Assets/Character 9.png");
+	customerAssets[0] = CP_Image_Load("Assets/Customer 1.png");
+	customerAssets[1] = CP_Image_Load("Assets/Customer 2.png");
+	customerAssets[2] = CP_Image_Load("Assets/Customer 3.png");
+	customerAssets[3] = CP_Image_Load("Assets/Customer 4.png");
+	customerAssets[4] = CP_Image_Load("Assets/Customer 5.png");
+	customerAssets[5] = CP_Image_Load("Assets/Customer 6.png");
+	customerAssets[6] = CP_Image_Load("Assets/Customer 7.png");
+	customerAssets[7] = CP_Image_Load("Assets/Customer 8.png");
+	customerAssets[8] = CP_Image_Load("Assets/Customer 9.png");
+
+	// Load foreground and background assets
+	background = CP_Image_Load("Assets/Backgroud.png");
+	foreground = CP_Image_Load("Assets/Foreground .png");
 
 	myFont = CP_Font_Load("Assets/Exo2-Regular.ttf");
 
@@ -237,6 +227,7 @@ void Game_Update(void)
 			i--;
 		}
 	}
+	CP_Image_Draw(foreground, CP_System_GetWindowWidth() / 2, CP_System_GetWindowHeight() / 2, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
 
 	// Draw the customer orders
 	for (int i = 0; i < customerCount; i++)
@@ -547,19 +538,7 @@ void Game_Update(void)
 
 	if (isPaused && gameEnd == 0)
 	{
-		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 150));
-		CP_Graphics_DrawRect(0.0f, 0.0f, 1600.0f, 900.0f);
-
-		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
-		CP_Settings_TextSize(60.0f);
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Font_DrawText("PAUSED", 800.0f, 420.0f);
-
-		CP_Settings_TextSize(25.0f);
-		CP_Font_DrawText("Press SPACE to resume", 800.0f, 490.0f);
-
-		CP_Settings_TextSize(25.0f);
-		CP_Font_DrawText("Press ESC to quit", 800.0f, 530.0f);
+		pauseScreen();
 
 		if (CP_Input_KeyTriggered(KEY_ESCAPE)) {
 			CP_Engine_Terminate();
@@ -585,6 +564,9 @@ void Game_Exit(void)
 	CP_Sound_Free(sfxLeave);
 	CP_Sound_Free(sfxTick);
 	CP_Sound_Free(sfxCustomerEnter);
+
+	CP_Image_Free("Assets/Backgroud.png");
+	CP_Image_Free("Assets/Foreground .png");
 
 	for (int i = 0; i < NUM_CHARACTER_ASSETS; i++)
 	{
