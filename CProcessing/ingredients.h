@@ -23,7 +23,7 @@ extern struct Ingredient bread, tomato, lettuce, cheese, ham, egg, sausage, mayo
 
 // For target position (where the sandwich will be assembled)
 #define INGREDIENT_POSX		(float)CP_System_GetWindowWidth() / 2.0f
-#define INGREDIENT_POSY		(float)CP_System_GetWindowHeight() * 0.75f
+#define INGREDIENT_POSY		(float)CP_System_GetWindowHeight() * 0.82f
 #define INGREDIENT_Y_OFFSET 20.0f // How far up each ingredient will be offset from the previous
 
 #define INGREDIENT_SPEED	10.0f		// For animations
