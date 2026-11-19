@@ -51,11 +51,11 @@ static void UpdateCustomerPositions(void)
 
 		// Set coordinates for moving animation
 		customers[i].animState.startPos = customers[i].animState.currentPos;
-		customers[i].animState.targetPos = CP_Vector_Set(CUSTOMER_PLACEMENT_START_X + (i * CUSTOMER_PLACEMENT_INTERVAL), 550.0f);
+		customers[i].animState.targetPos = CP_Vector_Set(CUSTOMER_PLACEMENT_START_X + (i * CUSTOMER_PLACEMENT_INTERVAL), 470.0f);
 		customers[i].animState.animationProgress = 0.0f; // Set animation progress at 0%
 
-		customers[i].width = 180.0f;
-		customers[i].height = 220.0f;
+		customers[i].width = 210.0f;
+		customers[i].height = 250.0f;
 	}
 }
 
@@ -102,7 +102,7 @@ void CompleteCustomer(int index)
 
 	// Set up their exit path
 	leavingCustomers[leavingCustomerCount].animState.startPos = customers[index].animState.currentPos;
-	leavingCustomers[leavingCustomerCount].animState.targetPos = CP_Vector_Set(customers[index].animState.currentPos.x, -100.0f); // Move up off-screen
+	leavingCustomers[leavingCustomerCount].animState.targetPos = CUSTOMER_LEAVE_POS; // Move up off-screen
 	leavingCustomers[leavingCustomerCount].animState.animationProgress = 0.0f;
 	leavingCustomers[leavingCustomerCount].animState.isAnimating = 1;
 	leavingCustomerCount++;
