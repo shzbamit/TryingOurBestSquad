@@ -42,8 +42,8 @@ char scoreText[12];
 #define SCORE_CUSTOMER_LEFT			-50		// points lost when a customer leaves 
 
 // Timer
-//int total_seconds =					300;	// 5 minutes
-int total_seconds =					50;	// remove after testing
+int total_seconds =					300;	// 5 minutes
+//int total_seconds =					50;	// remove after testing
 int minutes =						0;
 int seconds =						0;
 char timerText[6];
@@ -234,25 +234,45 @@ void Game_Update(void)
 	}
 	CP_Image_Draw(foreground, CP_System_GetWindowWidth() / 2, CP_System_GetWindowHeight() / 2, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
 
+
 	// Draw the customer orders
 	for (int i = 0; i < customerCount; i++)
 	{
 		char customerText[30];
 
-		snprintf(customerText, sizeof(customerText), "Customer %d", i + 1); 
+		snprintf(customerText, sizeof(customerText), "Customer %d", i + 1);
 
-		float startX = 30.0f + (i * 200.0f);
+		// Position of each customer's receipt
+		float startX = 20.0f + (i * 160.0f);
 		float startY = 55.0f;
 
-		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-		CP_Font_DrawText(customerText, startX, startY); // Draws the customer label above their order
+		// Calculate receipt height based on number of ingredients
+		float receiptWidth = 145.0f;
+		float receiptHeight = 65.0f + (customers[i].orderSize * 55.0f);
 
-		for (int j = 0; j < customers[i].orderSize; j++) // Draws the order ingredients and their corresponding keys
+		// Draw white receipt background
+		CP_Settings_RectMode(CP_POSITION_CORNER);
+		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
+		CP_Settings_NoStroke();
+
+		CP_Graphics_DrawRect(
+			startX - 10.0f,
+			startY - 30.0f,
+			receiptWidth,
+			receiptHeight
+		);
+
+		// Draw customer label
+		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+		CP_Settings_TextSize(20.0f);
+		CP_Font_DrawText(customerText, startX, startY);
+
+		for (int j = 0; j < customers[i].orderSize; j++)
 		{
 			int ingredientID = customers[i].order[j];
 			char keyText[2];
 
-			switch (ingredientID) // Assigns the corresponding key to the ingredient
+			switch (ingredientID)
 			{
 			case 0: keyText[0] = 'B'; break;
 			case 1: keyText[0] = 'T'; break;
@@ -267,23 +287,23 @@ void Game_Update(void)
 
 			keyText[1] = '\0';
 
-			// Calculate the position for each ingredient and its corresponding key
+			// Calculate ingredient positions
 			float keyX = startX;
 			float keyY = startY + 20.0f + (j * 55.0f);
 
-			// Draw the key box and ingredient image
+			// Draw key box
 			CP_Settings_RectMode(CP_POSITION_CORNER);
 			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
 			CP_Settings_Stroke(CP_Color_Create(150, 150, 150, 255));
 			CP_Graphics_DrawRect(keyX, keyY, 40.0f, 40.0f);
 
-			// Draw the key text and ingredient image
+			// Draw key text
 			CP_Settings_NoStroke();
 			CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 			CP_Settings_TextSize(25.0f);
 			CP_Font_DrawText(keyText, keyX + 12.0f, keyY + 29.0f);
 
-			// Draw the ingredient image next to the key box
+			// Draw ingredient image
 			CP_Image_Draw(
 				ingredients[ingredientID].asset,
 				keyX + 72.0f,
@@ -294,6 +314,7 @@ void Game_Update(void)
 			);
 		}
 	}
+
 
 	// Score text
 	CP_Settings_Fill(SCORE_TEXT_COLOR);
