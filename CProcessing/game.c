@@ -43,8 +43,8 @@ char scoreText[12];
 #define SCORE_CUSTOMER_LEFT			-50		// points lost when a customer leaves 
 
 // Timer
-//int total_seconds =					300;	// 5 minutes
-int total_seconds =					5;	// remove after testing
+int total_seconds =					300;	// 5 minutes
+//int total_seconds =					5;	// remove after testing
 int minutes =						0;
 int seconds =						0;
 char timerText[6];

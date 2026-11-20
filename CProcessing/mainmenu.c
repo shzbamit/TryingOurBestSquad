@@ -47,6 +47,9 @@ void Main_Menu_Update(void)
 	CP_Font_DrawText("Type Off!:", text_TypeOff_x, text_TypeOff_y);
 	CP_Font_DrawText("Kitchen Rush", text_TypeOff_x - 100, text_TypeOff_y + 150);
 
+	CP_Settings_TextSize(60.0f);
+	CP_Font_DrawText("Type :)", 500, 580);
+
 	
 	if (CP_Input_KeyTriggered(start[startProgress].keybind))
 	{
@@ -60,6 +63,7 @@ void Main_Menu_Update(void)
 		quit[quitProgress].r = 255;
 		quitProgress++;
 	}
+
 	else
 	{
 		wrongKey(start, 5, &startProgress, gameState);
@@ -68,6 +72,8 @@ void Main_Menu_Update(void)
 
 	if (startProgress == 5)
 	{
+		CP_Settings_TextSize(60.0f);
+		CP_Font_DrawText("Entering game ...", 700, 780);
 		CP_Engine_SetNextGameState(Game_Init, Game_Update, Game_Exit);
 	}
 
