@@ -131,7 +131,8 @@ void pauseScreen(void)
 	GenerateLetters(resume, 6, r_x_position, 490.0f);
 
 	CP_Settings_TextSize(25.0f);
-	CP_Font_DrawText("type      to quit", 800.0f, 530.0f);
+	GenerateLetters(quit, 4, r_x_position + 10 , 530.0f);
+	CP_Font_DrawText("type                  to quit", 780.0f, 530.0f);
 }
 
 void gameStructInitialization()
