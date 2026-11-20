@@ -21,16 +21,16 @@ void Main_Menu_Init(void)
 {
 	myFont = CP_Font_Load("Assets/Exo2-Regular.ttf");
 
-	start[0] = (struct letterState){ 0,0,0,KEY_S };
-	start[1] = (struct letterState){ 0,0,0,KEY_T };
-	start[2] = (struct letterState){ 0,0,0,KEY_A };
-	start[3] = (struct letterState){ 0,0,0,KEY_R };
-	start[4] = (struct letterState){ 0,0,0,KEY_T };
+	start[0] = (struct letterState){ 'S',0,0,0,KEY_S};
+	start[1] = (struct letterState){ 'T',0,0,0,KEY_T};
+	start[2] = (struct letterState){ 'A',0,0,0,KEY_A};
+	start[3] = (struct letterState){ 'R',0,0,0,KEY_R };
+	start[4] = (struct letterState){ 'T',0,0,0,KEY_T };
 
-	quit[0] = (struct letterState){ 0,0,0,KEY_Q };
-	quit[1] = (struct letterState){ 0,0,0,KEY_U };
-	quit[2] = (struct letterState){ 0,0,0,KEY_I };
-	quit[3] = (struct letterState){ 0,0,0,KEY_T };
+	quit[0] = (struct letterState){ 'Q',0,0,0,KEY_Q };
+	quit[1] = (struct letterState){ 'U',0,0,0,KEY_U };
+	quit[2] = (struct letterState){ 'I',0,0,0,KEY_I };
+	quit[3] = (struct letterState){ 'T',0,0,0,KEY_T };
 }
 
 void Main_Menu_Update(void)

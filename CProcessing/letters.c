@@ -2,7 +2,7 @@
 float x_position = 700;
 float y_position = 580;
 float endX_position = 1050;
-float r_x_position = 800;
+float r_x_position = 740;
 struct letterState start[5];
 struct letterState quit[4];
 struct letterState restart[7];
@@ -82,31 +82,39 @@ void endScreen(void)
 {
 	//Restart text
 	CP_Settings_Fill(CP_Color_Create(restart[0].r, restart[0].g, restart[0].b, 255));
-	CP_Font_DrawText("R", endX_position , y_position);
+	CP_Font_DrawText("R", endX_position + 30, y_position);
 	CP_Settings_Fill(CP_Color_Create(restart[1].r, restart[1].g, restart[1].b, 255));
-	CP_Font_DrawText("E", endX_position + 50, y_position);
+	CP_Font_DrawText("E", endX_position + 70, y_position);
 	CP_Settings_Fill(CP_Color_Create(restart[2].r, restart[2].g, restart[2].b, 255));
-	CP_Font_DrawText("S", endX_position + 100, y_position);
+	CP_Font_DrawText("S", endX_position + 110, y_position);
 	CP_Settings_Fill(CP_Color_Create(restart[3].r, restart[3].g, restart[3].b, 255));
 	CP_Font_DrawText("T", endX_position + 150, y_position);
 	CP_Settings_Fill(CP_Color_Create(restart[4].r, restart[4].g, restart[4].b, 255));
-	CP_Font_DrawText("A", endX_position + 200, y_position);
+	CP_Font_DrawText("A", endX_position + 190, y_position);
 	CP_Settings_Fill(CP_Color_Create(restart[5].r, restart[5].g, restart[5].b, 255));
-	CP_Font_DrawText("R", endX_position + 250, y_position);
+	CP_Font_DrawText("R", endX_position + 230, y_position);
 	CP_Settings_Fill(CP_Color_Create(restart[6].r, restart[6].g, restart[6].b, 255));
-	CP_Font_DrawText("T", endX_position + 300, y_position);
+	CP_Font_DrawText("T", endX_position + 270, y_position);
 
 	//Quit text
 	CP_Settings_Fill(CP_Color_Create(quit[0].r, quit[0].g, quit[0].b, 255));
-	CP_Font_DrawText("Q", endX_position + 50, y_position + 100);
+	CP_Font_DrawText("Q", endX_position + 100, y_position + 60);
 	CP_Settings_Fill(CP_Color_Create(quit[1].r, quit[1].g, quit[1].b, 255));
-	CP_Font_DrawText("U", endX_position + 100, y_position + 100);
+	CP_Font_DrawText("U", endX_position + 140, y_position + 60);
 	CP_Settings_Fill(CP_Color_Create(quit[2].r, quit[2].g, quit[2].b, 255));
-	CP_Font_DrawText("I", endX_position + 140, y_position + 100);
+	CP_Font_DrawText("I", endX_position + 170, y_position + 60);
 	CP_Settings_Fill(CP_Color_Create(quit[3].r, quit[3].g, quit[3].b, 255));
-	CP_Font_DrawText("T", endX_position + 170, y_position + 100);
+	CP_Font_DrawText("T", endX_position + 195, y_position + 60);
 }
 
+void GenerateLetters(struct letterState arr[], int size, float position_x, float position_y)
+{
+	for (int i = 0; i < size; i++)
+	{
+		char text[2] = { arr[i].letter, '\0' };   // e.g. "R"
+		CP_Font_DrawText(text, (float)(position_x + i * 14), position_y);
+	}
+}
 void pauseScreen(void)
 {
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 150));
@@ -118,9 +126,9 @@ void pauseScreen(void)
 	CP_Font_DrawText("PAUSED", 800.0f, 420.0f);
 
 	CP_Settings_TextSize(25.0f);
-	CP_Font_DrawText("Type        to resume", 800.0f, 490.0f);
+	CP_Font_DrawText("Type                    to resume", 800.0f, 490.0f);
 	CP_Settings_Fill(CP_Color_Create(resume[0].r, resume[0].g, resume[0].b, 255));
-	CP_Font_DrawText("R", r_x_position, 490.0f);
+	GenerateLetters(resume, 6, r_x_position, 490.0f);
 
 	CP_Settings_TextSize(25.0f);
 	CP_Font_DrawText("type      to quit", 800.0f, 530.0f);
@@ -128,23 +136,23 @@ void pauseScreen(void)
 
 void gameStructInitialization()
 {
-	resume[0] = (struct letterState){ 255,255,255,KEY_R };
-	resume[1] = (struct letterState){ 255,255,255,KEY_E };
-	resume[2] = (struct letterState){ 255,255,255,KEY_S };
-	resume[3] = (struct letterState){ 255,255,255,KEY_U };
-	resume[4] = (struct letterState){ 255,255,255,KEY_M };
-	resume[5] = (struct letterState){ 255,255,255,KEY_E };
+	resume[0] = (struct letterState){'R', 255,255,255,KEY_R};
+	resume[1] = (struct letterState){ 'E',255,255,255,KEY_E};
+	resume[2] = (struct letterState){ 'S',255,255,255,KEY_S};
+	resume[3] = (struct letterState){ 'U',255,255,255,KEY_U};
+	resume[4] = (struct letterState){ 'M',255,255,255,KEY_M};
+	resume[5] = (struct letterState){ 'E',255,255,255,KEY_E};
 
-	quit[0] = (struct letterState){ 255,255,255,KEY_Q };
-	quit[1] = (struct letterState){ 255,255,255,KEY_U };
-	quit[2] = (struct letterState){ 255,255,255,KEY_I };
-	quit[3] = (struct letterState){ 255,255,255,KEY_T };
+	quit[0] = (struct letterState){ 'Q',255,255,255,KEY_Q};
+	quit[1] = (struct letterState){ 'U',255,255,255,KEY_U};
+	quit[2] = (struct letterState){ 'I',255,255,255,KEY_I};
+	quit[3] = (struct letterState){ 'T',255,255,255,KEY_T};
 
-	restart[0] = (struct letterState){ 255,255,255,KEY_R };
-	restart[1] = (struct letterState){ 255,255,255,KEY_E };
-	restart[2] = (struct letterState){ 255,255,255,KEY_S };
-	restart[3] = (struct letterState){ 255,255,255,KEY_T };
-	restart[4] = (struct letterState){ 255,255,255,KEY_A };
-	restart[5] = (struct letterState){ 255,255,255,KEY_R };
-	restart[6] = (struct letterState){ 255,255,255,KEY_T };
+	restart[0] = (struct letterState){ 'R',255,255,255,KEY_R};
+	restart[1] = (struct letterState){ 'E',255,255,255,KEY_E};
+	restart[2] = (struct letterState){ 'S',255,255,255,KEY_S};
+	restart[3] = (struct letterState){ 'T',255,255,255,KEY_T};
+	restart[4] = (struct letterState){ 'A',255,255,255,KEY_A};
+	restart[5] = (struct letterState){ 'R',255,255,255,KEY_R};
+	restart[6] = (struct letterState){ 'T',255,255,255,KEY_T};
 }

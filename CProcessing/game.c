@@ -25,6 +25,7 @@ CP_Sound sfxCustomerEnter;
 
 CP_Image background;
 CP_Image foreground;
+CP_Image scoreBoard;
 
 // Colours
 #define BG_COLOUR					CP_Color_Create(247, 252, 252, 255) // Background
@@ -42,8 +43,8 @@ char scoreText[12];
 #define SCORE_CUSTOMER_LEFT			-50		// points lost when a customer leaves 
 
 // Timer
-int total_seconds =					300;	// 5 minutes
-//int total_seconds =					50;	// remove after testing
+//int total_seconds =					300;	// 5 minutes
+int total_seconds =					5;	// remove after testing
 int minutes =						0;
 int seconds =						0;
 char timerText[6];
@@ -86,6 +87,7 @@ void Game_Init(void)
 	// Load foreground and background assets
 	background = CP_Image_Load("Assets/Backgroud.png");
 	foreground = CP_Image_Load("Assets/foreground.png");
+	scoreBoard = CP_Image_Load("Assets/Scoreboard .png");
 
 	myFont = CP_Font_Load("Assets/Exo2-Regular.ttf");
 
@@ -128,6 +130,9 @@ void Game_Update(void)
 	CP_Graphics_ClearBackground(BG_COLOUR); // Don't move this, this is for clearing the canvas at the start of every update
 
 	// Render game assets here ==========================================================================================================
+
+	CP_Image_Draw(background, CP_System_GetWindowWidth() / 2, CP_System_GetWindowHeight() / 2, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
+	
 
 	// Display all customer orders
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
@@ -233,6 +238,7 @@ void Game_Update(void)
 		}
 	}
 	CP_Image_Draw(foreground, CP_System_GetWindowWidth() / 2, CP_System_GetWindowHeight() / 2, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
+	CP_Image_Draw(scoreBoard, (CP_System_GetWindowWidth() / 2) - 100, CP_System_GetWindowHeight() / 2, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
 
 
 	// Draw the customer orders
@@ -500,23 +506,23 @@ void Game_Update(void)
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_TOP);
 		if (score >= 10000)
 		{
-			CP_Font_DrawText("You definitely cheated", 800.0f, 230.0f);
+			CP_Font_DrawText("You definitely cheated", 800.0f, 240.0f);
 		}
 
 		else if (500 <= score && score < 10000)
 		{
-			CP_Font_DrawText("Good Job!", 800.0f, 230.0f);
+			CP_Font_DrawText("Good Job!", 800.0f, 240.0f);
 		}
 
 		else
 		{
-			CP_Font_DrawText("Skill Issue lol", 800.0f, 230.0f);
+			CP_Font_DrawText("Skill Issue lol", 800.0f, 240.0f);
 		}
 
 		CP_Settings_TextSize(100.0f);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 		CP_Font_DrawText("Your Score:", 1200.0f, 350.0f);
-		CP_Font_DrawText(scoreText, 1200.0f, 430.0f);
+		CP_Font_DrawText(scoreText, 1200.0f, 450.0f);
 
 		DrawLeaderboard();
 
@@ -601,6 +607,7 @@ void Game_Exit(void)
 
 	CP_Image_Free("Assets/Backgroud.png");
 	CP_Image_Free("Assets/foreground.png");
+	CP_Image_Free("Assets/Scoreboard .png");
 
 	for (int i = 0; i < NUM_CHARACTER_ASSETS; i++)
 	{
