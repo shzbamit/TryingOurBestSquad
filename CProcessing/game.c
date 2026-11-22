@@ -12,7 +12,7 @@
 #include "customers.h"
 #include "letters.h"
 #include "leaderboard.h"
-
+#include "score.h"
 
 // Assets
 CP_Font myFont;
@@ -29,18 +29,6 @@ CP_Image scoreBoard;
 
 // Colours
 #define BG_COLOUR					CP_Color_Create(247, 252, 252, 255) // Background
-#define SCORE_TEXT_COLOR			CP_Color_Create(128, 128, 128, 255) 
-
-// Score
-int score =							0;
-int lastScore =						-1;		// This tracks when the score is updated by comparing lastScore to score
-char scoreText[12];
-#define SCORE_TEXT_SIZE				100.0f
-
-#define SCORE_ORDER					100		// For completing orders
-#define SCORE_SPEED_BONUS_MAX		100		// points gained when order is completed faster
-#define SCORE_REMOVE_INGREDIENT		-10		// For discarding ingredients
-#define SCORE_CUSTOMER_LEFT			-50		// points lost when a customer leaves 
 
 // Timer
 int total_seconds =					300;	// 5 minutes
@@ -50,6 +38,9 @@ int seconds =						0;
 char timerText[6];
 int initialTime =					300; //used for reseting the time when restarting the game
 clock_t next_tick;
+
+#define TIMER_TEXT_SIZE				100.0f
+#define TIMER_COLOUR				CP_Color_Create(128, 128, 128, 255)
 
 // Pause
 int isPaused = 0;
@@ -132,7 +123,6 @@ void Game_Update(void)
 	// Render game assets here ==========================================================================================================
 
 	CP_Image_Draw(background, CP_System_GetWindowWidth() / 2, CP_System_GetWindowHeight() / 2, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
-	
 
 	// Display all customer orders
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
@@ -230,9 +220,17 @@ void Game_Update(void)
 		// Draw the walking-away customer (No patience bar drawn here!)
 		CP_Image_Draw(leavingCustomers[i].asset, leavingCustomers[i].animState.currentPos.x, leavingCustomers[i].animState.currentPos.y, leavingCustomers[i].width, leavingCustomers[i].height, 255);
 
+		// Only draw the layers if this leaving customer is the one who was successfully served
+		if (leavingCustomers[i].animState.isAnimating)
+		{
+			RenderLeavingSandwich(positionFrame);
+		}
+
 		// Clean them up once they completely vanish off screen
 		if (leavingCustomers[i].animState.animationProgress >= 1.0f)
 		{
+			ClearLeavingSandwich();
+
 			ShiftCustomerArray(leavingCustomers, &leavingCustomerCount, i);
 			i--;
 		}
@@ -297,15 +295,53 @@ void Game_Update(void)
 			float keyX = startX;
 			float keyY = startY + 20.0f + (j * 55.0f);
 
+			// Dynamic green highlight tracker
+			int isRowCorrect = 0;
+
+			// Only evaluate if the player has actually stacked up to this row depth
+			if (j < sandwichOrder)
+			{
+				// Check if EVERY SINGLE ingredient up to this point matches the customer's order perfectly
+				int perfectStreak = 1;
+				for (int k = 0; k <= j; k++)
+				{
+					if (sandwich[k].itemID != customers[i].order[k])
+					{
+						perfectStreak = 0; // The chain was broken by a wrong ingredient!
+						break;
+					}
+				}
+				isRowCorrect = perfectStreak;
+			}
+
 			// Draw key box
 			CP_Settings_RectMode(CP_POSITION_CORNER);
 			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
-			CP_Settings_Stroke(CP_Color_Create(150, 150, 150, 255));
+
+			// Apply dynamic green box colour
+			if (isRowCorrect)
+			{
+				CP_Settings_Stroke(CP_Color_Create(50, 220, 50, 255)); // Glow Green Border
+			}
+			else
+			{
+				CP_Settings_Stroke(CP_Color_Create(150, 150, 150, 255)); // Standard Gray Border
+			}
 			CP_Graphics_DrawRect(keyX, keyY, 40.0f, 40.0f);
 
 			// Draw key text
 			CP_Settings_NoStroke();
-			CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+
+			// Apply dynamic green box colour
+			if (isRowCorrect)
+			{
+				CP_Settings_Fill(CP_Color_Create(0, 180, 0, 255)); // Visible Dark Green Font
+			}
+			else
+			{
+				CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255)); // Standard Black Font
+			}
+
 			CP_Settings_TextSize(25.0f);
 			CP_Font_DrawText(keyText, keyX + 12.0f, keyY + 29.0f);
 
@@ -321,13 +357,7 @@ void Game_Update(void)
 		}
 	}
 
-
-	// Score text
-	CP_Settings_Fill(SCORE_TEXT_COLOR);
-	CP_Settings_TextSize(SCORE_TEXT_SIZE);
-	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BASELINE);
-
-	CP_Font_DrawText(scoreText, 800.0f, 100.0f);
+	RenderScore();
 
 	// Timer text 
 	if (total_seconds <= 30)
@@ -350,6 +380,9 @@ void Game_Update(void)
 	}
 
 	// Timer text
+	CP_Settings_TextSize(TIMER_TEXT_SIZE);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BASELINE);
+	CP_Settings_Fill(TIMER_COLOUR);
 	CP_Font_DrawText(timerText, 1450.0f, 100.0f);
 
 	RenderSandwich();
@@ -412,6 +445,8 @@ void Game_Update(void)
 
 			score = CP_Math_ClampInt(score, 0, INT_MAX);
 
+			CaptureLeavingSandwich();
+
 			CompleteCustomer(matchedCustomer); // Remove the customer from the queue and mark them as leaving
 			CP_Sound_PlayAdvanced(sfxServe, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
 
@@ -458,12 +493,8 @@ void Game_Update(void)
 			}
 		}
 
-		// This only updates when score is changed
-		if (score != lastScore)
-		{
-			snprintf(scoreText, sizeof(scoreText), "%d", score); // Converts score int to char
-			lastScore = score;
-		}
+		// Updates the ticker interpolator every single frame automatically
+		UpdateScoreCounter();
 
 		// Timer check
 		if (clock() >= next_tick && total_seconds >= 0)

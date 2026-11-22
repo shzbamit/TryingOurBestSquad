@@ -7,6 +7,10 @@ struct Ingredient sandwich[MAX_SANDWICH_SIZE]; // Contains the sandwich being ma
 struct DiscardedIngredient discardedItems[MAX_DISCARDED_ITEMS];
 int discardedCount = 0;
 
+// Track the sandwich for the customer currently walking away
+int leavingSandwichSize = 0;
+CP_Image leavingSandwichAssets[MAX_SANDWICH_SIZE];
+
 /* !
 @brief  Updates currenPos of each sandwich ingredient in sandwichOrder 
 		based on animationProgress.
@@ -186,4 +190,55 @@ void RemoveIngredient(void)
 
 		discardedCount++; // Incremented to prepare for next discard
 	}
+}
+
+/* !
+@brief  Extracts and backs up the textures of the current active sandwich
+		right before the table order counts reset to zero.
+@param  none
+@return none
+*//*______________________________________________________________*/
+void CaptureLeavingSandwich(void)
+{
+	leavingSandwichSize = sandwichOrder;
+	for (int j = 0; j < sandwichOrder; j++)
+	{
+		leavingSandwichAssets[j] = sandwich[j].asset;
+	}
+}
+
+/* !
+@brief  Renders the captured sandwich layers relative to a moving position vector.
+@param  CP_Vector - The current frame coordinates of the walking customer
+@return none
+*//*______________________________________________________________*/
+void RenderLeavingSandwich(CP_Vector customerPos)
+{
+	if (leavingSandwichSize <= 0) return;
+
+	for (int j = 0; j < leavingSandwichSize; j++)
+	{
+		// Calculate the offsets to place the stack nicely over the customer sprite
+		float sandwichX = customerPos.x;
+		float sandwichY = customerPos.y + 40.0f - (INGREDIENT_Y_OFFSET * j);
+
+		CP_Image_Draw(
+			leavingSandwichAssets[j],
+			sandwichX,
+			sandwichY,
+			INGREDIENT_SIZE / 2,
+			INGREDIENT_SIZE / 2,
+			255
+		);
+	}
+}
+
+/* !
+@brief  Resets the tracker states when a leaving customer completely exits.
+@param  none
+@return none
+*//*______________________________________________________________*/
+void ClearLeavingSandwich(void)
+{
+	leavingSandwichSize = 0;
 }

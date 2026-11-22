@@ -36,6 +36,15 @@
     <ClCompile Include="letters.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="customers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="leaderboard.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="score.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h">
@@ -54,6 +63,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="letters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="customers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="leaderboard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="score.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
