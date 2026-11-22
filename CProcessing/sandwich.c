@@ -220,7 +220,7 @@ void RenderLeavingSandwich(CP_Vector customerPos)
 	{
 		// Calculate the offsets to place the stack nicely over the customer sprite
 		float sandwichX = customerPos.x;
-		float sandwichY = customerPos.y + 40.0f - (INGREDIENT_Y_OFFSET * j);
+		float sandwichY = customerPos.y + 40.0f - ((INGREDIENT_Y_OFFSET / 2) * j);
 
 		CP_Image_Draw(
 			leavingSandwichAssets[j],
