@@ -45,6 +45,8 @@ void OnCustomerServed(int basePoints)
         score += bonus;
         targetScore += bonus;
         PushScoreList(bonus);       // shows second
+
+        scoreList[scoreListCount - 1].color = CP_Color_Create(255, 180, 0, 255);   // orange
     }
 }
 
