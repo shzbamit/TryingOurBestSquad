@@ -22,3 +22,9 @@ void PushScoreList(int amount);
 void RenderScoreList(void);
 void UpdateScoreCounter(void);
 void RenderScore(void);
+
+void OnCustomerServed(int basePoints); 
+void OnCustomerLeft(void); 
+void OnIngredientDiscarded(void);
+int  GetStreak(void);
+void ResetStreak(void);

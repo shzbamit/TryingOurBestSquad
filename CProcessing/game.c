@@ -41,6 +41,7 @@ clock_t next_tick;
 
 #define TIMER_TEXT_SIZE				100.0f
 #define TIMER_COLOUR				CP_Color_Create(128, 128, 128, 255)
+#define TIME_PENALTY_DISCARD		10 // seconds lost per discarded ingredient
 
 // Pause
 int isPaused = 0;
@@ -55,6 +56,21 @@ static int quitProgress = 0;
 static int gameState = 1;
 
 static int leaderboardUpdated = 0;
+
+// Subtracts seconds from the game timer and updates the timer text immediately
+static void ApplyTimePenalty(int penaltySeconds)
+{
+	total_seconds -= penaltySeconds;
+
+	if (total_seconds < 0)
+	{
+		total_seconds = 0; // don't let the display go negative
+	}
+
+	minutes = total_seconds / 60;
+	seconds = total_seconds % 60;
+	snprintf(timerText, sizeof(timerText), "%02d:%02d", minutes, seconds);
+}
 
 void Game_Init(void)
 {
@@ -401,11 +417,13 @@ void Game_Update(void)
 			if (sandwichOrder > 0)
 			{
 				RemoveIngredient();
+				ApplyTimePenalty(TIME_PENALTY_DISCARD); 
 				CP_Sound_PlayAdvanced(sfxDiscard, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
 
 				// Remove ingredient from the active sandwich stack instantly
 				sandwichOrder--;
 				score += SCORE_REMOVE_INGREDIENT;
+				OnIngredientDiscarded();
 				score = CP_Math_ClampInt(score, 0, INT_MAX); // clamps score to 0
 			}
 		}
@@ -421,9 +439,11 @@ void Game_Update(void)
 			while (sandwichOrder > 0) // Repeats until it is no longer true
 			{
 				RemoveIngredient();
+				ApplyTimePenalty(TIME_PENALTY_DISCARD);
 
 				sandwichOrder--;
 				score += SCORE_REMOVE_INGREDIENT;
+				OnIngredientDiscarded();
 			}
 			score = CP_Math_ClampInt(score, 0, INT_MAX); // clamps score to 0
 		}
@@ -436,12 +456,12 @@ void Game_Update(void)
 		// If a match is found, complete the order and update the score
 		if (matchedCustomer != -1)
 		{
-			score += SCORE_ORDER;
 
 			// For bonus points
 			float patienceRatio = customers[matchedCustomer].patience / customers[matchedCustomer].maxPatience; // Calculate the ratio of remaining patience to maximum patience
 			int speedBonus = (int)(SCORE_SPEED_BONUS_MAX * patienceRatio); // Calculate the speed bonus based on the patience ratio
-			score += speedBonus;
+			
+			OnCustomerServed(SCORE_ORDER + speedBonus);
 
 			score = CP_Math_ClampInt(score, 0, INT_MAX);
 
@@ -487,6 +507,7 @@ void Game_Update(void)
 			if (customers[i].patience <= 0.0f)
 			{
 				score += SCORE_CUSTOMER_LEFT;
+				OnCustomerLeft();
 				score = CP_Math_ClampInt(score, 0, INT_MAX);
 
 				CompleteCustomer(i);
@@ -592,6 +613,7 @@ void Game_Update(void)
 		restartProgress = 0;
 		quitProgress = 0;
 		score = 0;
+		ResetStreak();
 		total_seconds = initialTime;
 		CP_Engine_SetNextGameStateForced(Game_Init, Game_Update, Game_Exit);
 	}

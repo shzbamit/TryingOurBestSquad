@@ -1,5 +1,4 @@
 #include <stdlib.h>
-
 #include "customers.h"
 #include "ingredients.h"
 #include "sandwich.h"
@@ -113,8 +112,14 @@ void CompleteCustomer(int index)
 	// Tell the remaining active line queue to slide forward step slots
 	UpdateCustomerPositions();
 
-	// Spawn a new customer if the queue is below the maximum shown
-	if (customerCount < CUSTOMERS_SHOWN)
+	// Tell the remaining active line queue to slide forward step slots 
+	UpdateCustomerPositions();
+
+	// Pick a random number of customers (1 to CUSTOMERS_SHOWN) that should be in the queue now
+	int targetCustomers = (rand() % CUSTOMERS_SHOWN) + 1;
+
+	// Spawn customers until the queue reaches that number
+	while (customerCount < targetCustomers)
 	{
 		SpawnCustomer();
 	}
@@ -124,10 +129,7 @@ void SpawnInitialCustomers(void)
 {
 	customerCount = 0;
 
-	for (int i = 0; i < CUSTOMERS_SHOWN; i++) // Spawn the initial customers to fill the queue
-	{
-		SpawnCustomer();
-	}
+	SpawnCustomer(); // Only 1 customer at the start of the game
 }
 
 int FindMatchingCustomer(void)
