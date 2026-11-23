@@ -658,9 +658,9 @@ void Game_Exit(void)
 	CP_Sound_Free(sfxTick);
 	CP_Sound_Free(sfxCustomerEnter);
 
-	CP_Image_Free("Assets/Backgroud.png");
-	CP_Image_Free("Assets/foreground2.png");
-	CP_Image_Free("Assets/Scoreboard .png");
+	CP_Image_Free(background);
+	CP_Image_Free(foreground);
+	CP_Image_Free(scoreBoard);
 
 	for (int i = 0; i < NUM_CHARACTER_ASSETS; i++)
 	{

@@ -3,10 +3,12 @@ float x_position = 700;
 float y_position = 580;
 float endX_position = 1050;
 float r_x_position = 740;
-struct letterState start[5];
-struct letterState quit[4];
-struct letterState restart[7];
-struct letterState resume[6];
+struct letterState start[START];
+struct letterState quit[QUIT];
+struct letterState credits[CREDITS];
+struct letterState restart[RESTART];
+struct letterState resume[RESUME];
+struct letterState back[BACK];
 
 //detects which key is being pressed if it does not match the struct array
 void wrongKey(struct letterState arr[], int size, int* progress, int gameState)
@@ -52,6 +54,7 @@ void resetWordsWhite(struct letterState arr[], int size, int* progress)
 	}
 	*progress = 0;
 }
+
 void initializeLetters(void)
 {
 	//Start text
@@ -76,6 +79,35 @@ void initializeLetters(void)
 	CP_Font_DrawText("I", x_position + 130, y_position + 100);
 	CP_Settings_Fill(CP_Color_Create(quit[3].r, quit[3].g, quit[3].b, 255));
 	CP_Font_DrawText("T", x_position + 150, y_position + 100);
+
+	// Credits text
+	CP_Settings_Fill(CP_Color_Create(credits[0].r, credits[0].g, credits[0].b, 255));
+	CP_Font_DrawText("C", x_position, y_position + 200);
+	CP_Settings_Fill(CP_Color_Create(credits[1].r, credits[1].g, credits[1].b, 255));
+	CP_Font_DrawText("R", x_position + 50, y_position + 200);
+	CP_Settings_Fill(CP_Color_Create(credits[2].r, credits[2].g, credits[2].b, 255));
+	CP_Font_DrawText("E", x_position + 100, y_position + 200);
+	CP_Settings_Fill(CP_Color_Create(credits[3].r, credits[3].g, credits[3].b, 255));
+	CP_Font_DrawText("D", x_position + 150, y_position + 200);
+	CP_Settings_Fill(CP_Color_Create(credits[4].r, credits[4].g, credits[4].b, 255));
+	CP_Font_DrawText("I", x_position + 200, y_position + 200);
+	CP_Settings_Fill(CP_Color_Create(credits[5].r, credits[5].g, credits[5].b, 255));
+	CP_Font_DrawText("T", x_position + 220, y_position + 200);
+	CP_Settings_Fill(CP_Color_Create(credits[6].r, credits[6].g, credits[6].b, 255));
+	CP_Font_DrawText("S", x_position + 270, y_position + 200);
+}
+
+void CreditBack(float x, float y)
+{
+	// Back text
+	CP_Settings_Fill(CP_Color_Create(back[0].r, back[0].g, back[0].b, 255));
+	CP_Font_DrawText("B", x, y);
+	CP_Settings_Fill(CP_Color_Create(back[1].r, back[1].g, back[1].b, 255));
+	CP_Font_DrawText("A", x + 15, y);
+	CP_Settings_Fill(CP_Color_Create(back[2].r, back[2].g, back[2].b, 255));
+	CP_Font_DrawText("C", x + 30, y);
+	CP_Settings_Fill(CP_Color_Create(back[3].r, back[3].g, back[3].b, 255));
+	CP_Font_DrawText("K", x + 45, y);
 }
 
 void endScreen(void)
