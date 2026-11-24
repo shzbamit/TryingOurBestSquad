@@ -56,8 +56,10 @@ extern struct Customer leavingCustomers[MAX_CUSTOMERS];
 extern int leavingCustomerCount;
 
 // Customer functions:
+void ShiftCustomerArray(struct Customer arr[], int* count, int indexToRemove);
 void SpawnInitialCustomers(void);
 void CompleteCustomer(int index);
 int FindMatchingCustomer(void);
+void SpawnCustomer(void);
 
-#endif // CUSTOMERS_H
+#endif CUSTOMERS_H

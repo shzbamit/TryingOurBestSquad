@@ -13,6 +13,8 @@
 #include "letters.h"
 #include "leaderboard.h"
 #include "score.h"
+#include "timer.h"
+#include "debug.h"
 
 // Assets
 CP_Font myFont;
@@ -29,17 +31,6 @@ CP_Image scoreBoard;
 
 // Colours
 #define BG_COLOUR					CP_Color_Create(247, 252, 252, 255) // Background
-
-// Timer
-int total_seconds =					300;	// 5 minutes
-//int total_seconds =					5;	// remove after testing
-int minutes =						0;
-int seconds =						0;
-char timerText[6];
-int initialTime =					300; //used for reseting the time when restarting the game
-clock_t next_tick;
-
-#define TIMER_TEXT_SIZE				100.0f
 #define TIMER_COLOUR				CP_Color_Create(128, 128, 128, 255)
 
 // Pause
@@ -55,6 +46,10 @@ static int quitProgress = 0;
 static int gameState = 1;
 
 static int leaderboardUpdated = 0;
+
+// Tracks whether the debug menu has been turned on or not
+// Can be used to disable certain features later, such as disabling highscore 
+static int debugEnabled = 0;
 
 // Subtracts seconds from the game timer and updates the timer text immediately
 static void ApplyTimePenalty(int penaltySeconds)
@@ -73,7 +68,7 @@ static void ApplyTimePenalty(int penaltySeconds)
 
 void Game_Init(void)
 {
-	//Load game menu structs
+	// Load game menu structs
 	gameStructInitialization();
 
 	// Load Assets
@@ -112,9 +107,7 @@ void Game_Init(void)
 	// Customer queue
 	SpawnInitialCustomers();
 
-	next_tick = clock() + CLOCKS_PER_SEC;   // Set the first tick target
-	// Initialize the string with a safe placeholder
-	snprintf(timerText, sizeof(timerText), "05:00");
+	InitializeTimer();
 
 	// Play music on loop: volume, pitch, looping, group
 	CP_Sound_PlayAdvanced(bgm, 0.4f, 1.0f, TRUE, CP_SOUND_GROUP_MUSIC);
@@ -122,15 +115,15 @@ void Game_Init(void)
 
 void Game_Update(void)
 {
+	if (total_seconds < 0)
+	{
+		gameEnd = 1;
+	}
+
 	// Check if space is pressed to pause game
 	if (CP_Input_KeyTriggered(KEY_SPACE))
 	{
 		isPaused = !isPaused;
-	}
-
-	if (total_seconds < 0)
-	{
-		gameEnd = 1;
 	}
 
 	CP_Graphics_ClearBackground(BG_COLOUR); // Don't move this, this is for clearing the canvas at the start of every update
@@ -404,6 +397,8 @@ void Game_Update(void)
 	// Updates physics positions and prints all falling discarded ingredients
 	UpdateAndRenderDiscards();
 
+	debugEnabled = AllowDebug(); // Allow capturing debug key input to debug
+
 	// End of asset renders =====================================================================================================================
 
 	if (!isPaused && gameEnd == 0) {
@@ -517,23 +512,7 @@ void Game_Update(void)
 		UpdateScoreCounter();
 
 		// Timer check
-		if (clock() >= next_tick && total_seconds >= 0)
-		{
-			total_seconds--;
-			next_tick = clock() + CLOCKS_PER_SEC; // Set target for next second
-
-			// timer countdown sfx plays 
-			if (total_seconds >= 0 && total_seconds <= 10)
-			{
-				CP_Sound_PlayAdvanced(sfxTick, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
-			}
-
-			// Render the update
-			minutes = total_seconds / 60;
-			seconds = total_seconds % 60;
-			snprintf(timerText, sizeof(timerText), "%02d:%02d", minutes, seconds); // Converts min/sec int to char
-			fflush(stdout); // Force engine to instantly display timer text
-		}
+		UpdateTimer();
 	}
 
 	if (gameEnd == 1 && leaderboardUpdated == 0)

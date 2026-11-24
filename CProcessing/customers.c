@@ -3,7 +3,7 @@
 #include "ingredients.h"
 #include "sandwich.h"
 
-extern CP_Sound sfxCustomerEnter;
+CP_Sound sfxCustomerEnter;
 
 // Global variables:
 struct Customer customers[MAX_CUSTOMERS];
@@ -58,7 +58,7 @@ static void UpdateCustomerPositions(void)
 	}
 }
 
-static void SpawnCustomer(void)
+void SpawnCustomer(void)
 {
 	if (customerCount >= MAX_CUSTOMERS) return; // guard against overflowing the array
 
@@ -83,7 +83,7 @@ static void SpawnCustomer(void)
 
 	// Spawn at the right side of the screen
 	customers[i].animState.currentPos.x = 1900.0f;
-	customers[i].animState.currentPos.y = 400.0f;
+	customers[i].animState.currentPos.y = 470.0f;
 
 	customerCount++;
 

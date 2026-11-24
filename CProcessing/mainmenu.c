@@ -19,7 +19,7 @@ int backProgress = 0; // For back function on credit screen
 
 static int gameState = 0;
 
-#define SPLASH_SCREEN_TIME 4.0f // 2 seconds for digipen logo and 2s for team logo
+#define SPLASH_SCREEN_TIME 4.0f // Total splash screen time: 2 seconds for digipen logo and 2s for team logo
 float splashScreenTimer = 0.0f; // For tracking how much time has passed in splash screen
 
 #define BLACK_COLOUR CP_Color_Create(0, 0, 0, 255)
