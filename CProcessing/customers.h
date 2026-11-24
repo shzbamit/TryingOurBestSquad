@@ -14,8 +14,8 @@
 #define NUM_CHARACTER_ASSETS		9
 
 // customer placement
-#define CUSTOMER_PLACEMENT_START_X	700.0f  // must be right of the order columns (~540)
-#define CUSTOMER_PLACEMENT_INTERVAL 260.0f
+#define CUSTOMER_PLACEMENT_START_X	470.0f  // must be right of the order columns (~540)
+#define CUSTOMER_PLACEMENT_INTERVAL 350.0f
 
 #define CUSTOMER_LEAVE_POS CP_Vector_Set(-200.0f, 470.0f)
 

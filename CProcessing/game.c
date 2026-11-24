@@ -260,58 +260,39 @@ void Game_Update(void)
 	// Draw the customer orders
 	for (int i = 0; i < customerCount; i++)
 	{
-		char customerText[30];
+		// Get customer's current position
+		float customerX = customers[i].animState.currentPos.x;
+		float customerY = customers[i].animState.currentPos.y;
 
-		snprintf(customerText, sizeof(customerText), "Customer %d", i + 1);
+		float startX = customerX - customers[i].width / 2.0f - 115.0f;
 
-		// Position of each customer's receipt
-		float startX = 20.0f + (i * 160.0f);
-		float startY = 55.0f;
+		// Calculate background dimensions
+		float backgroundWidth = 100.0f;
+		float backgroundHeight = customers[i].orderSize * 45.0f + 10.0f;
 
-		// Calculate receipt height based on number of ingredients
-		float receiptWidth = 145.0f;
-		float receiptHeight = 65.0f + (customers[i].orderSize * 55.0f);
+		// To start from the same Y-axis
+		float bottomY = customerY + 100.0f;
+		float startY = bottomY - backgroundHeight;
 
-		// Draw white receipt background
+		// White background
 		CP_Settings_RectMode(CP_POSITION_CORNER);
 		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
 		CP_Settings_NoStroke();
 
 		CP_Graphics_DrawRect(
-			startX - 10.0f,
-			startY - 30.0f,
-			receiptWidth,
-			receiptHeight
+			startX,
+			startY,
+			backgroundWidth,
+			backgroundHeight
 		);
 
-		// Draw customer label
-		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-		CP_Settings_TextSize(20.0f);
-		CP_Font_DrawText(customerText, startX, startY);
-
+		// Draw ingredient images
 		for (int j = 0; j < customers[i].orderSize; j++)
 		{
 			int ingredientID = customers[i].order[j];
-			char keyText[2];
 
-			switch (ingredientID)
-			{
-			case 0: keyText[0] = 'B'; break;
-			case 1: keyText[0] = 'T'; break;
-			case 2: keyText[0] = 'L'; break;
-			case 3: keyText[0] = 'C'; break;
-			case 4: keyText[0] = 'H'; break;
-			case 5: keyText[0] = 'E'; break;
-			case 6: keyText[0] = 'S'; break;
-			case 7: keyText[0] = 'M'; break;
-			default: keyText[0] = '?'; break;
-			}
-
-			keyText[1] = '\0';
-
-			// Calculate ingredient positions
-			float keyX = startX;
-			float keyY = startY + 20.0f + (j * 55.0f);
+			float ingredientX = startX + backgroundWidth / 2.0f;
+			float ingredientY = startY + (j * 45.0f) + 27.5f;
 
 			// Dynamic green highlight tracker
 			int isRowCorrect = 0;
@@ -332,44 +313,26 @@ void Game_Update(void)
 				isRowCorrect = perfectStreak;
 			}
 
-			// Draw key box
-			CP_Settings_RectMode(CP_POSITION_CORNER);
-			CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
-
-			// Apply dynamic green box colour
+			// Draw green highlight behind matching ingredient
 			if (isRowCorrect)
 			{
-				CP_Settings_Stroke(CP_Color_Create(50, 220, 50, 255)); // Glow Green Border
-			}
-			else
-			{
-				CP_Settings_Stroke(CP_Color_Create(150, 150, 150, 255)); // Standard Gray Border
-			}
-			CP_Graphics_DrawRect(keyX, keyY, 40.0f, 40.0f);
+				CP_Settings_Fill(CP_Color_Create(120, 230, 120, 255));
+				CP_Settings_NoStroke();
 
-			// Draw key text
-			CP_Settings_NoStroke();
-
-			// Apply dynamic green box colour
-			if (isRowCorrect)
-			{
-				CP_Settings_Fill(CP_Color_Create(0, 180, 0, 255)); // Visible Dark Green Font
-			}
-			else
-			{
-				CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255)); // Standard Black Font
+				CP_Graphics_DrawRect(
+					startX,
+					ingredientY - 22.5f,
+					backgroundWidth,
+					45.0f
+				);
 			}
 
-			CP_Settings_TextSize(25.0f);
-			CP_Font_DrawText(keyText, keyX + 12.0f, keyY + 29.0f);
-
-			// Draw ingredient image
 			CP_Image_Draw(
 				ingredients[ingredientID].asset,
-				keyX + 72.0f,
-				keyY + 20.0f,
-				55.0f,
-				55.0f,
+				ingredientX,
+				ingredientY,
+				45.0f,
+				45.0f,
 				255
 			);
 		}
