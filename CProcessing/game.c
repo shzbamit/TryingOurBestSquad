@@ -29,12 +29,16 @@ CP_Image background;
 CP_Image foreground;
 CP_Image scoreBoard;
 
+CP_Image nameInputField;
+
 // Colours
 #define BG_COLOUR					CP_Color_Create(247, 252, 252, 255) // Background
 #define TIMER_COLOUR				CP_Color_Create(128, 128, 128, 255)
 
 // Pause
 int isPaused = 0;
+
+int enteredName = 0; // Tracks whether the player has entered their name for the leaderboard
 
 //gameEnd
 int gameEnd = 0;
@@ -92,6 +96,8 @@ void Game_Init(void)
 	foreground = CP_Image_Load("Assets/foreground2.png");
 	scoreBoard = CP_Image_Load("Assets/Scoreboard .png");
 
+	nameInputField = CP_Image_Load("Assets/name_input_field.png");
+
 	myFont = CP_Font_Load("Assets/Exo2-Regular.ttf");
 
 	// Load sounds 
@@ -145,7 +151,7 @@ void Game_Update(void)
 	// Draw customers in the queue
 	for (int i = 0; i < customerCount; i++)
 	{
-		if (!isPaused) {
+		if (!isPaused && enteredName) {
 			// Interpolate coordinates via your custom function
 			CP_Vector positionFrame = MoveImage(
 				customers[i].animState.animSpeed * CP_System_GetDt(),
@@ -405,7 +411,7 @@ void Game_Update(void)
 
 	// End of asset renders =====================================================================================================================
 
-	if (!isPaused && gameEnd == 0) {
+	if (!isPaused && gameEnd == 0 && enteredName) {
 		// Controls for making the sandwich
 		MakeSandwich(customerCount);
 
@@ -512,6 +518,15 @@ void Game_Update(void)
 
 		// Timer check
 		UpdateTimer();
+	}
+
+	if (!enteredName) {
+		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 150));
+		CP_Graphics_DrawRect(0.0f, 0.0f, 1600.0f, 900.0f);
+
+		CP_Image_Draw(nameInputField, 800.0f, 450.0f, 600.0f, 600.0f, 255);
+
+		NameInput(&enteredName);
 	}
 
 	if (gameEnd == 1 && leaderboardUpdated == 0)
@@ -638,6 +653,7 @@ void Game_Exit(void)
 	CP_Image_Free(background);
 	CP_Image_Free(foreground);
 	CP_Image_Free(scoreBoard);
+	CP_Image_Free(nameInputField);
 
 	for (int i = 0; i < NUM_CHARACTER_ASSETS; i++)
 	{
