@@ -6,8 +6,8 @@
 int total_seconds = 180; // 3 minutes
 int minutes = 0;
 int seconds = 0;
-char timerText[6] = "05:00";
-const int initialTime = 300;
+char timerText[6] = "03:00";
+const int initialTime = 180;
 clock_t next_tick;
 
 // Initializes target tick parameters at game launch/restart
