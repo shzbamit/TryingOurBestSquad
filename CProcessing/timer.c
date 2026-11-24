@@ -3,7 +3,7 @@
 #include "timer.h"
 
 // Concrete definitions of global state values
-int total_seconds = 300; // 5 minutes
+int total_seconds = 180; // 3 minutes
 int minutes = 0;
 int seconds = 0;
 char timerText[6] = "05:00";
@@ -27,13 +27,6 @@ void UpdateTimer(void)
 	{
 		total_seconds--;
 		next_tick = clock() + CLOCKS_PER_SEC;
-
-		// Trigger ticking SFX down the final stretch
-		if (total_seconds >= 0 && total_seconds <= 10)
-		{
-			// Note: If sfxTick needs to be isolated here, you can load it here 
-			// or look it up from an assets reference.
-		}
 
 		minutes = total_seconds / 60;
 		seconds = total_seconds % 60;

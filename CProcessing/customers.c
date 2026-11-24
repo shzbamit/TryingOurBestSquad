@@ -92,9 +92,9 @@ void SpawnCustomer(void)
 	UpdateCustomerPositions();
 }
 
-#define SPAWN_INTERVAL_MIN		6.0f	// shortest wait before the next customer arrives (seconds)
-#define SPAWN_INTERVAL_MAX		14.0f	// longest wait
-#define DOUBLE_ARRIVAL_CHANCE	30		// % chance that 2 customers walk in together
+#define SPAWN_INTERVAL_MIN		5.0f	// shortest wait before the next customer arrives (seconds)
+#define SPAWN_INTERVAL_MAX		7.0f	// longest wait
+#define DOUBLE_ARRIVAL_CHANCE	40		// % chance that 2 customers walk in together
 
 static float spawnTimer = 0.0f;			// counts down to the next arrival
 
@@ -106,7 +106,7 @@ static float RandomSpawnInterval(void)
 
 void UpdateCustomerSpawning(void)
 {
-	// Queue is full, so the timer waits until a slot opens up
+	// Shop is full, so the timer waits until a slot opens up
 	if (customerCount >= CUSTOMERS_SHOWN)
 	{
 		return;
@@ -116,9 +116,10 @@ void UpdateCustomerSpawning(void)
 
 	if (spawnTimer <= 0.0f)
 	{
-		// Decide how many arrive together: usually 1, sometimes 2
-		int arrivals = 1;
-		if ((rand() % 100) < DOUBLE_ARRIVAL_CHANCE)
+		int arrivals = 1; // default: one customer walks in
+
+		// Only when exactly 1 customer is inside can a pair walk in together
+		if (customerCount == 1 && (rand() % 100) < DOUBLE_ARRIVAL_CHANCE)
 		{
 			arrivals = 2;
 		}
@@ -129,9 +130,10 @@ void UpdateCustomerSpawning(void)
 			SpawnCustomer();
 		}
 
-		spawnTimer = RandomSpawnInterval(); // roll the wait for the next group
+		spawnTimer = RandomSpawnInterval();
 	}
 }
+
 void CompleteCustomer(int index)
 {
 	if (customerCount == 0) return;
@@ -154,6 +156,13 @@ void CompleteCustomer(int index)
 
 	// Tell the remaining active line queue to slide forward step slots 
 	UpdateCustomerPositions();
+
+	// Never leave the shop empty: if the last customer left, someone new arrives
+	if (customerCount == 0)
+	{
+		SpawnCustomer();
+		spawnTimer = RandomSpawnInterval(); // restart the wait for the next arrival
+	}
 }
 
 void SpawnInitialCustomers(void)
