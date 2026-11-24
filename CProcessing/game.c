@@ -68,6 +68,8 @@ static void ApplyTimePenalty(int penaltySeconds)
 
 void Game_Init(void)
 {
+	debugActive = 0; // Reset debug menu state
+
 	// Load game menu structs
 	gameStructInitialization();
 
@@ -100,7 +102,7 @@ void Game_Init(void)
 	sfxTick = CP_Sound_Load("Assets/tick.mp3");
 	sfxCustomerEnter = CP_Sound_Load("Assets/CustomerEnter.mp3");
 
-	leaderboardUpdated = 0;
+	InitializeScore();
 
 	srand((unsigned int)time(NULL));
 
@@ -125,6 +127,8 @@ void Game_Update(void)
 	{
 		isPaused = !isPaused;
 	}
+
+	score = CP_Math_ClampInt(score, 0, MAX_SCORE);
 
 	CP_Graphics_ClearBackground(BG_COLOUR); // Don't move this, this is for clearing the canvas at the start of every update
 
@@ -417,7 +421,6 @@ void Game_Update(void)
 				sandwichOrder--;
 				score += SCORE_REMOVE_INGREDIENT;
 				OnIngredientDiscarded();
-				score = CP_Math_ClampInt(score, 0, INT_MAX); // clamps score to 0
 			}
 		}
 
@@ -437,7 +440,6 @@ void Game_Update(void)
 				score += SCORE_REMOVE_INGREDIENT;
 				OnIngredientDiscarded();
 			}
-			score = CP_Math_ClampInt(score, 0, INT_MAX); // clamps score to 0
 		}
 
 
@@ -454,8 +456,6 @@ void Game_Update(void)
 			int speedBonus = (int)(SCORE_SPEED_BONUS_MAX * patienceRatio); // Calculate the speed bonus based on the patience ratio
 			
 			OnCustomerServed(SCORE_ORDER + speedBonus);
-
-			score = CP_Math_ClampInt(score, 0, INT_MAX);
 
 			CaptureLeavingSandwich();
 
@@ -502,7 +502,6 @@ void Game_Update(void)
 			{
 				score += SCORE_CUSTOMER_LEFT;
 				OnCustomerLeft();
-				score = CP_Math_ClampInt(score, 0, INT_MAX);
 
 				CompleteCustomer(i);
 			}

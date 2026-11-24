@@ -6,6 +6,7 @@
 #include "customers.h"
 #include "timer.h"
 #include "score.h"
+#include "game.h"
 
 // Panel Layout Configurations
 #define PANEL_W 500.0f
@@ -34,10 +35,10 @@ const char* debugContent[] = {
 	"RemoveCustomer()",
 	"Timer +60s",
 	"Timer -60s",
-	"Score +100",
-	"Score +1000",
-	"Score -100",
-	"Score -1000"
+	"Score +10000",
+	"Score -10000",
+	"SetMaxScore()",
+	"Restart"
 };
 int debugLines = sizeof(debugContent) / sizeof(debugContent[0]);
 
@@ -116,16 +117,16 @@ static void RenderPanel(void)
 						ApplyTimeChanges(-60);
 						break;
 					case 5:
-						score += 100;
+						score += 10000;
 						break;
 					case 6:
-						score += 1000;
+						score -= 10000;
 						break;
 					case 7:
-						score -= 100;
+						score = MAX_SCORE;
 						break;
 					case 8:
-						score -= 1000;
+						CP_Engine_SetNextGameStateForced(Game_Init, Game_Update, Game_Exit);
 						break;
 					default:
 						break;

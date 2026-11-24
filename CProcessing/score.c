@@ -3,7 +3,9 @@
 
 int score = 0;								// Tracks actual score
 int displayScore = 0;						// For setting the display score
-int lastScore = -1;
+static int targetScore = 0;                 // For tracking score change amount
+
+int lastScore = -1;                         // Tracks if score is being changed (then tells the engine to convert int to string)
 char scoreText[12];
 
 #define MAX_SCORE_POP_INDICATORS	5		// Floating score effect system
@@ -11,7 +13,7 @@ char scoreText[12];
 
 #define SCORE_TEXT_POS_X            1050.0f
 #define SCORE_TEXT_POS_Y            100.0f
-#define SCORE_POP_TEXT_POS_X        1175.0f
+#define SCORE_POP_TEXT_POS_X        1200.0f
 #define SCORE_POP_TEXT_POS_Y        10.0f
 
 #define STREAK_BONUS_PER_LEVEL   10     // extra points per streak level
@@ -22,9 +24,26 @@ char scoreText[12];
 int streak = 0;
 int bestStreak = 0;
 
-int targetScore = 0;
 ScoreLogEntry scoreList[MAX_SCORE_POP_INDICATORS];
 int scoreListCount = 0;
+
+/* !
+@brief  Resets score variables at Game_Init()
+@param  none
+*//*______________________________________________________________*/
+void InitializeScore(void)
+{
+    score = 0;
+    displayScore = 0;
+    targetScore = 0;
+
+    lastScore = -1;
+
+    streak = 0;
+    bestStreak = 0;
+
+    scoreListCount = 0;
+}
 
 void OnCustomerServed(int basePoints)
 {
@@ -168,6 +187,12 @@ void RenderScoreList(void)
 *//*______________________________________________________________*/
 void UpdateScoreCounter(void)
 {
+    // Score must not go below 0 or above MAX_SCORE so changes are ignored
+    if (score > MAX_SCORE) score = MAX_SCORE;
+    if (score < 0) score = 0;
+
+    if (targetScore > MAX_SCORE) targetScore = MAX_SCORE;
+    if (targetScore < 0) targetScore = 0;
     // Detects the exact moment a point event happens
     if (score != targetScore)
     {

@@ -11,12 +11,16 @@ extern char scoreText[12];
 #define SCORE_REMOVE_INGREDIENT		-10		// For discarding ingredients
 #define SCORE_CUSTOMER_LEFT			-50		// points lost when a customer leaves 
 
+#define MAX_SCORE                   999999  // Max score is 6 digits long
+
 typedef struct {
     char text[12];
     CP_Color color;
     float timeAlive;  // Tracks how long (in seconds) this specific line has been visible
     float alpha;      // Handles the smooth visibility scale (1.0f fully visible to 0.0f hidden)
 } ScoreLogEntry;
+
+void InitializeScore(void);
 
 void PushScoreList(int amount);
 void RenderScoreList(void);
