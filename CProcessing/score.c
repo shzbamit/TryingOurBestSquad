@@ -29,11 +29,18 @@ int scoreListCount = 0;
 void OnCustomerServed(int basePoints)
 {
     streak++;
-    if (streak > bestStreak) bestStreak = streak;
+    if (streak > bestStreak)
+    {
+        bestStreak = streak;
+    }
 
     // Streak of 1 gives no bonus, 2 gives +10, 3 gives +20, ...
     int level = streak - 1;
-    if (level > STREAK_BONUS_MAX_LEVEL) level = STREAK_BONUS_MAX_LEVEL;
+    if (level > STREAK_BONUS_MAX_LEVEL)
+    {
+        level = STREAK_BONUS_MAX_LEVEL;
+    }
+
     int bonus = level * STREAK_BONUS_PER_LEVEL;
 
     score += basePoints;   // UpdateScoreCounter will pop up the total

@@ -41,7 +41,6 @@ clock_t next_tick;
 
 #define TIMER_TEXT_SIZE				100.0f
 #define TIMER_COLOUR				CP_Color_Create(128, 128, 128, 255)
-#define TIME_PENALTY_DISCARD		10 // seconds lost per discarded ingredient
 
 // Pause
 int isPaused = 0;
@@ -417,7 +416,6 @@ void Game_Update(void)
 			if (sandwichOrder > 0)
 			{
 				RemoveIngredient();
-				ApplyTimePenalty(TIME_PENALTY_DISCARD); 
 				CP_Sound_PlayAdvanced(sfxDiscard, 1.0f, 1.0f, FALSE, CP_SOUND_GROUP_SFX);
 
 				// Remove ingredient from the active sandwich stack instantly
@@ -439,7 +437,6 @@ void Game_Update(void)
 			while (sandwichOrder > 0) // Repeats until it is no longer true
 			{
 				RemoveIngredient();
-				ApplyTimePenalty(TIME_PENALTY_DISCARD);
 
 				sandwichOrder--;
 				score += SCORE_REMOVE_INGREDIENT;
@@ -472,6 +469,8 @@ void Game_Update(void)
 
 			sandwichOrder = 0;
 		}
+
+		UpdateCustomerSpawning();
 
 		// Patience countdown
 		for (int i = 0; i < customerCount; i++) // Go through each customer in the queue, one by one

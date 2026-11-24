@@ -27,6 +27,8 @@
 #define MAX_PATIENCE				25.0f
 #define PATIENCE_SPEED				0.5f
 
+void UpdateCustomerSpawning(void);
+
 // Customer struct:
 struct Customer
 {

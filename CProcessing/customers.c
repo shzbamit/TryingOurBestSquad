@@ -92,6 +92,46 @@ static void SpawnCustomer(void)
 	UpdateCustomerPositions();
 }
 
+#define SPAWN_INTERVAL_MIN		6.0f	// shortest wait before the next customer arrives (seconds)
+#define SPAWN_INTERVAL_MAX		14.0f	// longest wait
+#define DOUBLE_ARRIVAL_CHANCE	30		// % chance that 2 customers walk in together
+
+static float spawnTimer = 0.0f;			// counts down to the next arrival
+
+// Picks a random wait between MIN and MAX
+static float RandomSpawnInterval(void)
+{
+	return SPAWN_INTERVAL_MIN + ((float)rand() / (float)RAND_MAX) * (SPAWN_INTERVAL_MAX - SPAWN_INTERVAL_MIN);
+}
+
+void UpdateCustomerSpawning(void)
+{
+	// Queue is full, so the timer waits until a slot opens up
+	if (customerCount >= CUSTOMERS_SHOWN)
+	{
+		return;
+	}
+
+	spawnTimer -= CP_System_GetDt();
+
+	if (spawnTimer <= 0.0f)
+	{
+		// Decide how many arrive together: usually 1, sometimes 2
+		int arrivals = 1;
+		if ((rand() % 100) < DOUBLE_ARRIVAL_CHANCE)
+		{
+			arrivals = 2;
+		}
+
+		// Spawn them, but never go over the maximum
+		for (int n = 0; n < arrivals && customerCount < CUSTOMERS_SHOWN; n++)
+		{
+			SpawnCustomer();
+		}
+
+		spawnTimer = RandomSpawnInterval(); // roll the wait for the next group
+	}
+}
 void CompleteCustomer(int index)
 {
 	if (customerCount == 0) return;
@@ -114,15 +154,6 @@ void CompleteCustomer(int index)
 
 	// Tell the remaining active line queue to slide forward step slots 
 	UpdateCustomerPositions();
-
-	// Pick a random number of customers (1 to CUSTOMERS_SHOWN) that should be in the queue now
-	int targetCustomers = (rand() % CUSTOMERS_SHOWN) + 1;
-
-	// Spawn customers until the queue reaches that number
-	while (customerCount < targetCustomers)
-	{
-		SpawnCustomer();
-	}
 }
 
 void SpawnInitialCustomers(void)
@@ -130,6 +161,7 @@ void SpawnInitialCustomers(void)
 	customerCount = 0;
 
 	SpawnCustomer(); // Only 1 customer at the start of the game
+	spawnTimer = RandomSpawnInterval(); 
 }
 
 int FindMatchingCustomer(void)
