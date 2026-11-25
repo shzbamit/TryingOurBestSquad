@@ -55,20 +55,10 @@ static int leaderboardUpdated = 0;
 // Can be used to disable certain features later, such as disabling highscore 
 static int debugEnabled = 0;
 
-// Subtracts seconds from the game timer and updates the timer text immediately
-static void ApplyTimePenalty(int penaltySeconds)
-{
-	total_seconds -= penaltySeconds;
-
-	if (total_seconds < 0)
-	{
-		total_seconds = 0; // don't let the display go negative
-	}
-
-	minutes = total_seconds / 60;
-	seconds = total_seconds % 60;
-	snprintf(timerText, sizeof(timerText), "%02d:%02d", minutes, seconds);
-}
+enum { CONFIRM_NONE, CONFIRM_RESTART, CONFIRM_QUIT, CONFIRM_MENU };
+static int confirmAction = CONFIRM_NONE;
+static int yesProgress = 0;
+static int noProgress = 0;
 
 void Game_Init(void)
 {
@@ -129,7 +119,7 @@ void Game_Update(void)
 	}
 
 	// Check if space is pressed to pause game
-	if (CP_Input_KeyTriggered(KEY_SPACE))
+	if (confirmAction == CONFIRM_NONE && CP_Input_KeyTriggered(KEY_SPACE))
 	{
 		isPaused = !isPaused;
 	}
@@ -151,7 +141,7 @@ void Game_Update(void)
 	// Draw customers in the queue
 	for (int i = 0; i < customerCount; i++)
 	{
-		if (!isPaused && enteredName) {
+		if (!isPaused && enteredName && confirmAction == CONFIRM_NONE) {
 			// Interpolate coordinates via your custom function
 			CP_Vector positionFrame = MoveImage(
 				customers[i].animState.animSpeed * CP_System_GetDt(),
@@ -374,7 +364,7 @@ void Game_Update(void)
 
 	// End of asset renders =====================================================================================================================
 
-	if (!isPaused && gameEnd == 0 && enteredName) {
+	if(!isPaused && gameEnd == 0 && enteredName && confirmAction == CONFIRM_NONE) {
 		// Controls for making the sandwich
 		MakeSandwich(customerCount);
 
@@ -536,46 +526,39 @@ void Game_Update(void)
 		endScreen();
 	}
 
-	if (CP_Input_KeyTriggered(restart[restartProgress].keybind))
+	if (confirmAction == CONFIRM_NONE && enteredName && (isPaused || gameEnd == 1))
 	{
-		resetWordsWhite(quit, 4, &quitProgress); //resets quit 
-		restart[restartProgress].r = 0;
-		restart[restartProgress].b = 0;
-		restartProgress++;
-	}
-
-	else if (CP_Input_KeyTriggered(quit[quitProgress].keybind))
-	{
-		resetWordsWhite(restart, 7, &restartProgress);
-		quit[quitProgress].g = 0;
-		quit[quitProgress].b = 0;
-		quitProgress++;
-	}
-	else
-	{
-		wrongKey(restart, 7, &restartProgress, gameState);
-		wrongKey(quit, 4, &quitProgress, gameState);
+		if (CP_Input_KeyTriggered(restart[restartProgress].keybind))
+		{
+			resetWordsWhite(quit, 4, &quitProgress); //resets quit 
+			restart[restartProgress].r = 0;
+			restart[restartProgress].b = 0;
+			restartProgress++;
+		}
+		else if (CP_Input_KeyTriggered(quit[quitProgress].keybind))
+		{
+			resetWordsWhite(restart, 7, &restartProgress);
+			quit[quitProgress].g = 0;
+			quit[quitProgress].b = 0;
+			quitProgress++;
+		}
+		else
+		{
+			wrongKey(restart, 7, &restartProgress, gameState);
+			wrongKey(quit, 4, &quitProgress, gameState);
+		}
 	}
 
 	if (restartProgress == 7)
 	{
-		while (sandwichOrder > 0)
-		{
-			RemoveIngredient();
-			sandwichOrder--;
-		}
-		gameEnd = 0;
-		restartProgress = 0;
-		quitProgress = 0;
-		score = 0;
-		ResetStreak();
-		total_seconds = initialTime;
-		CP_Engine_SetNextGameStateForced(Game_Init, Game_Update, Game_Exit);
+		resetWordsWhite(restart, 7, &restartProgress);
+		confirmAction = CONFIRM_RESTART;   // ask first
 	}
 
 	if (quitProgress == 4)
 	{
-		CP_Engine_Terminate();
+		resetWordsWhite(quit, 4, &quitProgress);
+		confirmAction = CONFIRM_QUIT;      // ask first
 	}
 
 	if (resumeProgress == 6)
@@ -587,9 +570,66 @@ void Game_Update(void)
 	if (isPaused && gameEnd == 0)
 	{
 		pauseScreen();
+	}
 
-		if (CP_Input_KeyTriggered(KEY_ESCAPE)) {
-			CP_Engine_Terminate();
+	if (confirmAction != CONFIRM_NONE)
+	{
+		const char* msg = "Are you sure?";
+		if (confirmAction == CONFIRM_RESTART)   msg = "Restart the game?";
+		else if (confirmAction == CONFIRM_QUIT) msg = "Exit the game?";
+		else if (confirmAction == CONFIRM_MENU) msg = "Go back to main menu?";
+
+		confirmScreen(msg);
+
+		if (CP_Input_KeyTriggered(confirmYes[yesProgress].keybind))
+		{
+			resetWordsWhite(confirmNo, 2, &noProgress);
+			confirmYes[yesProgress].r = 0;
+			confirmYes[yesProgress].b = 0;
+			yesProgress++;
+		}
+		else if (CP_Input_KeyTriggered(confirmNo[noProgress].keybind))
+		{
+			resetWordsWhite(confirmYes, 3, &yesProgress);
+			confirmNo[noProgress].g = 0;
+			confirmNo[noProgress].b = 0;
+			noProgress++;
+		}
+		else
+		{
+			wrongKey(confirmYes, 3, &yesProgress, gameState);
+			wrongKey(confirmNo, 2, &noProgress, gameState);
+		}
+
+		if (noProgress == 2)   // NO typed: cancel
+		{
+			resetWordsWhite(confirmNo, 2, &noProgress);
+			confirmAction = CONFIRM_NONE;
+		}
+
+		if (yesProgress == 3)  // YES typed: do the action
+		{
+			int action = confirmAction;
+			resetWordsWhite(confirmYes, 3, &yesProgress);
+			confirmAction = CONFIRM_NONE;
+
+			if (action == CONFIRM_RESTART)
+			{
+				while (sandwichOrder > 0)
+				{
+					RemoveIngredient();
+					sandwichOrder--;
+				}
+				gameEnd = 0;
+				isPaused = 0;
+				score = 0;
+				ResetStreak();
+				CP_Engine_SetNextGameStateForced(Game_Init, Game_Update, Game_Exit);
+			}
+			else if (action == CONFIRM_QUIT)
+			{
+				CP_Engine_Terminate();
+			}
 		}
 	}
 }

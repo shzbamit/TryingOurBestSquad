@@ -17,7 +17,10 @@ extern struct letterState restart[RESTART];
 struct letterState resume[RESUME];
 extern struct letterState credits[CREDITS];
 extern struct letterState back[BACK];
+extern struct letterState confirmYes[3];
+extern struct letterState confirmNo[2];
 
+void confirmScreen(const char* message);
 void gameStructInitialization(void);
 void initializeLetters(void);
 void CreditBack(float x, float y);
