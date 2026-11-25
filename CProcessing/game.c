@@ -34,6 +34,8 @@ CP_Image nameInputField;
 // Colours
 #define BG_COLOUR					CP_Color_Create(247, 252, 252, 255) // Background
 #define TIMER_COLOUR				CP_Color_Create(128, 128, 128, 255)
+static int black = 0;
+static int white = 255;
 
 // Pause
 int isPaused = 0;
@@ -46,8 +48,6 @@ int restartProgress = 0;
 int resumeProgress = 0;
 static int quitProgress = 0;
 
-//game state
-static int gameState = 1;
 
 static int leaderboardUpdated = 0;
 
@@ -530,7 +530,7 @@ void Game_Update(void)
 	{
 		if (CP_Input_KeyTriggered(restart[restartProgress].keybind))
 		{
-			resetWordsWhite(quit, 4, &quitProgress); //resets quit 
+			ResetWordColor(quit, 4, &quitProgress, white); //resets quit 
 			restart[restartProgress].r = 0;
 			restart[restartProgress].b = 0;
 			restartProgress++;
@@ -538,27 +538,27 @@ void Game_Update(void)
 
 		else if (gameEnd == 1 && CP_Input_KeyTriggered(quit[quitProgress].keybind))
 		{
-			resetWordsWhite(restart, 7, &restartProgress);
+			ResetWordColor(restart, 7, &restartProgress, white);
 			quit[quitProgress].g = 0;
 			quit[quitProgress].b = 0;
 			quitProgress++;
 		}
 		else
 		{
-			wrongKey(restart, 7, &restartProgress, gameState);
-			wrongKey(quit, 4, &quitProgress, gameState);
+			WrongKey(restart, 7, &restartProgress, white);
+			WrongKey(quit, 4, &quitProgress, white);
 		}
 	}
 
 	if (restartProgress == 7)
 	{
-		resetWordsWhite(restart, 7, &restartProgress);
+		ResetWordColor(restart, 7, &restartProgress, white);
 		confirmAction = CONFIRM_RESTART;   // ask first
 	}
 
 	if (quitProgress == 4)
 	{
-		resetWordsWhite(quit, 4, &quitProgress);
+		ResetWordColor(quit, 4, &quitProgress, white);
 		confirmAction = CONFIRM_QUIT;      // ask first
 	}
 
@@ -589,34 +589,34 @@ void Game_Update(void)
 
 		if (CP_Input_KeyTriggered(confirmYes[yesProgress].keybind))
 		{
-			resetWordsWhite(confirmNo, 2, &noProgress);
+			ResetWordColor(confirmNo, 2, &noProgress, white);
 			confirmYes[yesProgress].r = 0;
 			confirmYes[yesProgress].b = 0;
 			yesProgress++;
 		}
 		else if (CP_Input_KeyTriggered(confirmNo[noProgress].keybind))
 		{
-			resetWordsWhite(confirmYes, 3, &yesProgress);
+			ResetWordColor(confirmYes, 3, &yesProgress, white);
 			confirmNo[noProgress].g = 0;
 			confirmNo[noProgress].b = 0;
 			noProgress++;
 		}
 		else
 		{
-			wrongKey(confirmYes, 3, &yesProgress, gameState);
-			wrongKey(confirmNo, 2, &noProgress, gameState);
+			WrongKey(confirmYes, 3, &yesProgress, white);
+			WrongKey(confirmNo, 2, &noProgress, white);
 		}
 
 		if (noProgress == 2)   // NO typed: cancel
 		{
-			resetWordsWhite(confirmNo, 2, &noProgress);
+			ResetWordColor(confirmNo, 2, &noProgress, white);
 			confirmAction = CONFIRM_NONE;
 		}
 
 		if (yesProgress == 3)  // YES typed: do the action
 		{
 			int action = confirmAction;
-			resetWordsWhite(confirmYes, 3, &yesProgress);
+			ResetWordColor(confirmYes, 3, &yesProgress, white);
 			confirmAction = CONFIRM_NONE;
 
 			if (action == CONFIRM_RESTART)

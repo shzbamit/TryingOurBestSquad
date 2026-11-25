@@ -17,7 +17,8 @@ static int quitProgress = 0; //To help check against current key triggered for q
 int creditsProgress = 0;
 int backProgress = 0; // For back function on credit screen
 
-static int gameState = 0;
+static int black = 0;
+static int white = 255;
 
 #define SPLASH_SCREEN_TIME 4.0f // Total splash screen time: 2 seconds for digipen logo and 2s for team logo
 float splashScreenTimer = 0.0f; // For tracking how much time has passed in splash screen
@@ -208,12 +209,12 @@ void Main_Menu_Update(void)
 		}
 		else
 		{
-			wrongKey(back, BACK, &backProgress, 1); // gameState forced set to correct mode here
+			WrongKey(back, BACK, &backProgress, white); // gameState forced set to correct mode here
 		}
 
 		if (backProgress == BACK)
 		{
-			wrongKey(credits, CREDITS, &creditsProgress, gameState); // Reset CREDITS text
+			WrongKey(credits, CREDITS, &creditsProgress, white); // Reset CREDITS text
 			creditsVisible = 0;
 		}
 	}
@@ -221,7 +222,7 @@ void Main_Menu_Update(void)
 	if (!isSplashScreen && !creditsVisible) // Main Menu Screen
 	{
 		CP_Graphics_ClearBackground(WHITE_COLOUR);
-		initializeLetters(); //Initialize start and quit
+		InitializeLetters(); //Initialize start and quit
 
 		//Render Title of game
 		CP_Settings_Fill(BLACK_COLOUR);
@@ -235,30 +236,30 @@ void Main_Menu_Update(void)
 
 		if (CP_Input_KeyTriggered(start[startProgress].keybind) && !CP_Input_KeyTriggered(credits[creditsProgress].keybind))
 		{
-			resetWordsBlack(quit, QUIT, &quitProgress); //resets quit 
-			resetWordsBlack(credits, CREDITS, &creditsProgress);
+			ResetWordColor(quit, QUIT, &quitProgress, black); //resets quit 
+			ResetWordColor(credits, CREDITS, &creditsProgress, black);
 			start[startProgress].g = 255;
 			startProgress++;
 		}
 		else if (CP_Input_KeyTriggered(quit[quitProgress].keybind))
 		{
-			resetWordsBlack(start, START, &startProgress);
-			resetWordsBlack(credits, CREDITS, &creditsProgress);
+			ResetWordColor(start, START, &startProgress, black);
+			ResetWordColor(credits, CREDITS, &creditsProgress, black);
 			quit[quitProgress].r = 255;
 			quitProgress++;
 		}
 		else if (CP_Input_KeyTriggered(credits[creditsProgress].keybind))
 		{
-			resetWordsBlack(start, START, &startProgress);
-			resetWordsBlack(quit, QUIT, &quitProgress);
+			ResetWordColor(start, START, &startProgress, black);
+			ResetWordColor(quit, QUIT, &quitProgress, black);
 			credits[creditsProgress].g = 255;
 			creditsProgress++;
 		}
 		else
 		{
-			wrongKey(start, START, &startProgress, gameState);
-			wrongKey(quit, QUIT, &quitProgress, gameState);
-			wrongKey(credits, CREDITS, &creditsProgress, gameState);
+			WrongKey(start, START, &startProgress, black);
+			WrongKey(quit, QUIT, &quitProgress, black);
+			WrongKey(credits, CREDITS, &creditsProgress, black);
 		}
 
 		if (startProgress == START)
@@ -276,7 +277,7 @@ void Main_Menu_Update(void)
 		if (creditsProgress == CREDITS)
 		{
 			// Reset BACK text
-			wrongKey(back, BACK, &backProgress, 1); // gameState forced set to correct mode here
+			WrongKey(back, BACK, &backProgress, white); // gameState forced set to correct mode here
 			creditsVisible = 1;
 		}
 	}
