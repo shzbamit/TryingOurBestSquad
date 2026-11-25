@@ -535,7 +535,8 @@ void Game_Update(void)
 			restart[restartProgress].b = 0;
 			restartProgress++;
 		}
-		else if (CP_Input_KeyTriggered(quit[quitProgress].keybind))
+
+		else if (gameEnd == 1 && CP_Input_KeyTriggered(quit[quitProgress].keybind))
 		{
 			resetWordsWhite(restart, 7, &restartProgress);
 			quit[quitProgress].g = 0;
@@ -570,6 +571,11 @@ void Game_Update(void)
 	if (isPaused && gameEnd == 0)
 	{
 		pauseScreen();
+
+		if (confirmAction == CONFIRM_NONE && CP_Input_KeyTriggered(KEY_ESCAPE))
+		{
+			confirmAction = CONFIRM_QUIT;
+		}
 	}
 
 	if (confirmAction != CONFIRM_NONE)
