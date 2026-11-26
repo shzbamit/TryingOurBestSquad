@@ -104,29 +104,29 @@ void Main_Menu_Init(void)
 	myFont = CP_Font_Load("Assets/Exo2-Regular.ttf");
 	digipenLogo = CP_Image_Load("Assets/DigiPen_Singapore_WEB_RED.png");
 
-	start[0] = (struct letterState){ 'S',0,0,0,KEY_S};
-	start[1] = (struct letterState){ 'T',0,0,0,KEY_T};
-	start[2] = (struct letterState){ 'A',0,0,0,KEY_A};
-	start[3] = (struct letterState){ 'R',0,0,0,KEY_R };
-	start[4] = (struct letterState){ 'T',0,0,0,KEY_T };
+	start[0] = (struct LetterState){ 'S',0,0,0,KEY_S};
+	start[1] = (struct LetterState){ 'T',0,0,0,KEY_T};
+	start[2] = (struct LetterState){ 'A',0,0,0,KEY_A};
+	start[3] = (struct LetterState){ 'R',0,0,0,KEY_R };
+	start[4] = (struct LetterState){ 'T',0,0,0,KEY_T };
 
-	quit[0] = (struct letterState){ 'Q',0,0,0,KEY_Q };
-	quit[1] = (struct letterState){ 'U',0,0,0,KEY_U };
-	quit[2] = (struct letterState){ 'I',0,0,0,KEY_I };
-	quit[3] = (struct letterState){ 'T',0,0,0,KEY_T };
+	quit[0] = (struct LetterState){ 'Q',0,0,0,KEY_Q };
+	quit[1] = (struct LetterState){ 'U',0,0,0,KEY_U };
+	quit[2] = (struct LetterState){ 'I',0,0,0,KEY_I };
+	quit[3] = (struct LetterState){ 'T',0,0,0,KEY_T };
 
-	credits[0] = (struct letterState){ 'C',0,0,0,KEY_C };
-	credits[1] = (struct letterState){ 'R',0,0,0,KEY_R };
-	credits[2] = (struct letterState){ 'E',0,0,0,KEY_E };
-	credits[3] = (struct letterState){ 'D',0,0,0,KEY_D };
-	credits[4] = (struct letterState){ 'I',0,0,0,KEY_I };
-	credits[5] = (struct letterState){ 'T',0,0,0,KEY_T };
-	credits[6] = (struct letterState){ 'S',0,0,0,KEY_S };
+	credits[0] = (struct LetterState){ 'C',0,0,0,KEY_C };
+	credits[1] = (struct LetterState){ 'R',0,0,0,KEY_R };
+	credits[2] = (struct LetterState){ 'E',0,0,0,KEY_E };
+	credits[3] = (struct LetterState){ 'D',0,0,0,KEY_D };
+	credits[4] = (struct LetterState){ 'I',0,0,0,KEY_I };
+	credits[5] = (struct LetterState){ 'T',0,0,0,KEY_T };
+	credits[6] = (struct LetterState){ 'S',0,0,0,KEY_S };
 
-	back[0] = (struct letterState){ 'B',255,255,255,KEY_B };
-	back[1] = (struct letterState){ 'A',255,255,255,KEY_A };
-	back[2] = (struct letterState){ 'C',255,255,255,KEY_C };
-	back[3] = (struct letterState){ 'K',255,255,255,KEY_K };
+	back[0] = (struct LetterState){ 'B',255,255,255,KEY_B };
+	back[1] = (struct LetterState){ 'A',255,255,255,KEY_A };
+	back[2] = (struct LetterState){ 'C',255,255,255,KEY_C };
+	back[3] = (struct LetterState){ 'K',255,255,255,KEY_K };
 }
 
 void Main_Menu_Update(void)

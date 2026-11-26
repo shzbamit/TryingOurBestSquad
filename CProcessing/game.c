@@ -36,6 +36,7 @@ CP_Image nameInputField;
 #define TIMER_COLOUR				CP_Color_Create(128, 128, 128, 255)
 static int black = 0;
 static int white = 255;
+static int grey = 128;
 
 // Pause
 int isPaused = 0;
@@ -47,6 +48,7 @@ int gameEnd = 0;
 int restartProgress = 0;
 int resumeProgress = 0;
 static int quitProgress = 0;
+int pauseProgress = 0;
 
 
 static int leaderboardUpdated = 0;
@@ -107,6 +109,8 @@ void Game_Init(void)
 
 	InitializeTimer();
 
+	
+
 	// Play music on loop: volume, pitch, looping, group
 	CP_Sound_PlayAdvanced(bgm, 0.4f, 1.0f, TRUE, CP_SOUND_GROUP_MUSIC);
 }
@@ -118,10 +122,11 @@ void Game_Update(void)
 		gameEnd = 1;
 	}
 
-	// Check if space is pressed to pause game
-	if (confirmAction == CONFIRM_NONE && CP_Input_KeyTriggered(KEY_SPACE))
+	// check if the player typed the whole pause
+	if (confirmAction == CONFIRM_NONE && pauseProgress == PAUSE)
 	{
 		isPaused = !isPaused;
+		ResetWordColor(pause, PAUSE, &pauseProgress, grey);
 	}
 
 	score = CP_Math_ClampInt(score, 0, MAX_SCORE);
@@ -137,6 +142,9 @@ void Game_Update(void)
 	CP_Settings_TextSize(25.0f);
 	CP_Font_Set(myFont);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BASELINE);
+
+	
+
 
 	// Draw customers in the queue
 	for (int i = 0; i < customerCount; i++)
@@ -246,7 +254,7 @@ void Game_Update(void)
 	CP_Image_Draw(foreground, CP_System_GetWindowWidth() / 2, CP_System_GetWindowHeight() / 2, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
 	CP_Image_Draw(scoreBoard, (CP_System_GetWindowWidth() / 2) - 100, CP_System_GetWindowHeight() / 2, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
 
-
+	GameScreenOptions();
 	// Draw the customer orders
 	for (int i = 0; i < customerCount; i++)
 	{
@@ -363,6 +371,18 @@ void Game_Update(void)
 	debugEnabled = AllowDebug(); // Allow capturing debug key input to debug
 
 	// End of asset renders =====================================================================================================================
+	if (CP_Input_KeyTriggered(pause[pauseProgress].keybind) && !isPaused && gameEnd == 0 && enteredName == 1)
+	{
+		pause[pauseProgress].r = 195;
+		pause[pauseProgress].g = 92;
+		pause[pauseProgress].b = 250;
+		pauseProgress++;
+	}
+
+	else
+	{
+		WrongKey(pause, PAUSE, &pauseProgress, grey);
+	}
 
 	if(!isPaused && gameEnd == 0 && enteredName && confirmAction == CONFIRM_NONE) {
 		// Controls for making the sandwich
@@ -528,26 +548,58 @@ void Game_Update(void)
 
 	if (confirmAction == CONFIRM_NONE && enteredName && (isPaused || gameEnd == 1))
 	{
-		if (CP_Input_KeyTriggered(restart[restartProgress].keybind))
+		if (restartProgress  <= 4 && resumeProgress <= 4 && CP_Input_KeyTriggered(restart[restartProgress].keybind) && CP_Input_KeyTriggered(resume[resumeProgress].keybind))
 		{
 			ResetWordColor(quit, 4, &quitProgress, white); //resets quit 
 			restart[restartProgress].r = 0;
 			restart[restartProgress].b = 0;
+			resume[restartProgress].r = 0;
+			resume[restartProgress].b = 0;
 			restartProgress++;
+			resumeProgress++;
 		}
 
-		else if (gameEnd == 1 && CP_Input_KeyTriggered(quit[quitProgress].keybind))
+		else if (CP_Input_KeyTriggered(quit[quitProgress].keybind))
 		{
+			ResetWordColor(resume, RESUME, &resumeProgress, white); 
 			ResetWordColor(restart, 7, &restartProgress, white);
 			quit[quitProgress].g = 0;
 			quit[quitProgress].b = 0;
 			quitProgress++;
 		}
+
+		else if (resumeProgress > 4 && CP_Input_KeyTriggered(resume[resumeProgress].keybind))
+		{
+			ResetWordColor(restart, 7, &restartProgress, white);
+			resume[resumeProgress].r = 0;
+			resume[resumeProgress].b = 0;
+			resumeProgress++;
+		}
+
+		else if (restartProgress > 4 && CP_Input_KeyTriggered(restart[restartProgress].keybind))
+		{
+			ResetWordColor(resume, RESUME, &resumeProgress, white);
+			restart[restartProgress].r = 0;
+			restart[restartProgress].b = 0;
+			restartProgress++;
+		}
+
+
 		else
 		{
 			WrongKey(restart, 7, &restartProgress, white);
 			WrongKey(quit, 4, &quitProgress, white);
+			WrongKey(resume, RESUME, &resumeProgress, white);
 		}
+	}
+	if (restartProgress == 3)
+	{
+		ResetWordColor(resume, RESUME, &resumeProgress, white); //resets resume
+	}
+
+	if (resumeProgress == 3)
+	{
+		ResetWordColor(restart, RESTART, &restartProgress, white); //resets resume
 	}
 
 	if (restartProgress == 7)
