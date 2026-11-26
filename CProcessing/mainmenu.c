@@ -10,12 +10,13 @@ CP_Color green;
 
 //Title position
 float text_TypeOff_x = 550;
-float text_TypeOff_y = 300;
+float text_TypeOff_y = 200;
 
 int startProgress = 0; // To help check against current key triggered for start
 static int quitProgress = 0; //To help check against current key triggered for quit
 int creditsProgress = 0;
 int backProgress = 0; // For back function on credit screen
+int infoProgress = 0; // For info function on main menu
 
 static int black = 0;
 static int white = 255;
@@ -99,10 +100,14 @@ int creditsLines2 = sizeof(creditsContent2) / sizeof(creditsContent2[0]);
 #define BACK_TEXT_POS_X CREDITS_BOX_W
 #define BACK_TEXT_POS_Y CREDITS_BOX_H
 
+CP_Image infoPage;
+int infoVisible = 0;
+
 void Main_Menu_Init(void)
 {
 	myFont = CP_Font_Load("Assets/Exo2-Regular.ttf");
 	digipenLogo = CP_Image_Load("Assets/DigiPen_Singapore_WEB_RED.png");
+	infoPage = CP_Image_Load("Assets/info.png");
 
 	start[0] = (struct LetterState){ 'S',0,0,0,KEY_S};
 	start[1] = (struct LetterState){ 'T',0,0,0,KEY_T};
@@ -127,6 +132,11 @@ void Main_Menu_Init(void)
 	back[1] = (struct LetterState){ 'A',255,255,255,KEY_A };
 	back[2] = (struct LetterState){ 'C',255,255,255,KEY_C };
 	back[3] = (struct LetterState){ 'K',255,255,255,KEY_K };
+
+	info[0] = (struct LetterState){ 'I', 0, 0, 0, KEY_I };
+	info[1] = (struct LetterState){ 'N', 0, 0, 0, KEY_N };
+	info[2] = (struct LetterState){ 'F', 0, 0, 0, KEY_F };
+	info[3] = (struct LetterState){ 'O', 0, 0, 0, KEY_O };
 }
 
 void Main_Menu_Update(void)
@@ -232,12 +242,13 @@ void Main_Menu_Update(void)
 		CP_Font_DrawText("Kitchen Rush", text_TypeOff_x - 100, text_TypeOff_y + 150);
 
 		CP_Settings_TextSize(60.0f);
-		CP_Font_DrawText("Type :)", 500, 580);
+		CP_Font_DrawText("Type :)", 500, 480);
 
 		if (CP_Input_KeyTriggered(start[startProgress].keybind) && !CP_Input_KeyTriggered(credits[creditsProgress].keybind))
 		{
 			ResetWordColor(quit, QUIT, &quitProgress, black); //resets quit 
 			ResetWordColor(credits, CREDITS, &creditsProgress, black);
+			ResetWordColor(info, INFO, &infoProgress, black);
 			start[startProgress].g = 255;
 			startProgress++;
 		}
@@ -245,6 +256,7 @@ void Main_Menu_Update(void)
 		{
 			ResetWordColor(start, START, &startProgress, black);
 			ResetWordColor(credits, CREDITS, &creditsProgress, black);
+			ResetWordColor(info, INFO, &infoProgress, black);
 			quit[quitProgress].r = 255;
 			quitProgress++;
 		}
@@ -252,20 +264,30 @@ void Main_Menu_Update(void)
 		{
 			ResetWordColor(start, START, &startProgress, black);
 			ResetWordColor(quit, QUIT, &quitProgress, black);
+			ResetWordColor(info, INFO, &infoProgress, black);
 			credits[creditsProgress].g = 255;
 			creditsProgress++;
+		}
+		else if (CP_Input_KeyTriggered(info[infoProgress].keybind))
+		{
+			ResetWordColor(start, START, &startProgress, black);
+			ResetWordColor(quit, QUIT, &quitProgress, black);
+			ResetWordColor(credits, CREDITS, &creditsProgress, black);
+			info[infoProgress].g = 255;
+			infoProgress++;
 		}
 		else
 		{
 			WrongKey(start, START, &startProgress, black);
 			WrongKey(quit, QUIT, &quitProgress, black);
 			WrongKey(credits, CREDITS, &creditsProgress, black);
+			WrongKey(info, INFO, &infoProgress, black);
 		}
 
 		if (startProgress == START)
 		{
 			CP_Settings_TextSize(60.0f);
-			CP_Font_DrawText("Entering game ...", 950, 600);
+			CP_Font_DrawText("Entering game ...", 950, 500);
 			CP_Engine_SetNextGameState(Game_Init, Game_Update, Game_Exit);
 		}
 
@@ -280,6 +302,22 @@ void Main_Menu_Update(void)
 			WrongKey(back, BACK, &backProgress, white); // gameState forced set to correct mode here
 			creditsVisible = 1;
 		}
+
+		if (infoProgress == INFO)
+		{
+			infoVisible = 1;
+		}
+
+		if (infoVisible)
+		{
+			CP_Settings_Fill(CP_Color_Create(0, 0, 0, 100));
+			CP_Graphics_DrawRect(800.0f, 450.0f, 1600.0f, 900.0f);
+			CP_Image_Draw(infoPage, 800.0f, 450.0f, 850.0f, 850.0f, 255);
+			if (CP_Input_KeyTriggered(KEY_X)) {
+				infoVisible = 0;
+				ResetWordColor(info, INFO, &infoProgress, black);
+			}
+		}
 	}
 
 }
@@ -288,4 +326,5 @@ void Main_Menu_Exit(void)
 {
 	CP_Font_Free(myFont);
 	CP_Image_Free(digipenLogo);
+	CP_Image_Free(infoPage);
 }

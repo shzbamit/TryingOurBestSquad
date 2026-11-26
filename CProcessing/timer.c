@@ -4,10 +4,13 @@
 
 // Concrete definitions of global state values
 int total_seconds = 180; // 3 minutes
+//int total_seconds = 5; // 5 seconds
 int minutes = 0;
 int seconds = 0;
 char timerText[6] = "03:00";
 const int initialTime = 180;
+//char timerText[6] = "00:05"; // to test the timer quickly
+//const int initialTime = 5;
 clock_t next_tick;
 
 // Initializes target tick parameters at game launch/restart

@@ -1,6 +1,6 @@
 #include "letters.h"
 float x_position = 700;
-float y_position = 580;
+float y_position = 480;
 float endX_position = 1050;
 float r_x_position = 740;
 struct LetterState start[START];
@@ -12,6 +12,7 @@ struct LetterState pause[PAUSE];
 struct LetterState back[BACK];
 struct LetterState confirmYes[3];
 struct LetterState confirmNo[2];
+struct LetterState info[INFO];
 
 //detects which key is being pressed if it does not match the struct array
 void WrongKey(struct LetterState arr[], int size, int* progress, int color)
@@ -46,10 +47,13 @@ void InitializeLetters(void)
 	GenerateLetters(start, START, x_position, y_position,47.0,100,0);
 
 	//Quit text
-	GenerateLetters(quit, QUIT, x_position + 30, y_position + 200, 50.0,100,0);
+	GenerateLetters(quit, QUIT, x_position + 30, y_position + 300, 50.0,100,0);
 
 	// Credits text
 	GenerateLetters(credits, CREDITS, x_position - 45, y_position + 100, 50.0,100,0);
+
+	// Info text
+	GenerateLetters(info, INFO, x_position + 30, y_position + 200, 50.0, 100, 0);
 }
 
 void CreditBack(float x, float y)
@@ -109,9 +113,6 @@ void GameScreenOptions(void)
 	CP_Settings_TextSize(40);
 	CP_Font_DrawText("Type                to pause", 30, 50);
 	GenerateLetters(pause, PAUSE, 110, 50, 20, 40, 0);
-	
-	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-	CP_Font_DrawText("Press I for info", 30, 90);
 }
 
 void pauseScreen(void)

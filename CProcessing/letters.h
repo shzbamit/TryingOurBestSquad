@@ -9,7 +9,7 @@ struct LetterState
 	CP_KEY keybind;
 };
 
-enum { START = 5, QUIT = 4, RESTART = 7, RESUME = 6, CREDITS = 7, BACK = 4 , PAUSE = 5};
+enum { START = 5, QUIT = 4, RESTART = 7, RESUME = 6, CREDITS = 7, BACK = 4 , PAUSE = 5, INFO = 4};
 
 extern struct LetterState start[START];
 extern struct LetterState quit[QUIT];
@@ -20,6 +20,7 @@ extern struct LetterState back[BACK];
 extern struct LetterState confirmYes[3];
 extern struct LetterState confirmNo[2];
 extern struct LetterState pause[PAUSE];
+extern struct LetterState info[INFO];
 
 void confirmScreen(const char* message);
 void gameStructInitialization(void);

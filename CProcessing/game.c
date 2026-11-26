@@ -65,6 +65,8 @@ static int noProgress = 0;
 void Game_Init(void)
 {
 	debugActive = 0; // Reset debug menu state
+	enteredName = 0; // Reset name input state
+	leaderboardUpdated = 0; // Reset leaderboard update state
 
 	// Load game menu structs
 	gameStructInitialization();
@@ -549,6 +551,7 @@ void Game_Update(void)
 	if (confirmAction == CONFIRM_NONE && enteredName && (isPaused || gameEnd == 1))
 	{
 		if (restartProgress  <= 4 && resumeProgress <= 4 && CP_Input_KeyTriggered(restart[restartProgress].keybind) && CP_Input_KeyTriggered(resume[resumeProgress].keybind))
+		//if (restartProgress <= 4 && CP_Input_KeyTriggered(restart[restartProgress].keybind)) // to test without resume
 		{
 			ResetWordColor(quit, 4, &quitProgress, white); //resets quit 
 			restart[restartProgress].r = 0;
