@@ -566,7 +566,7 @@ void Game_Update(void)
 			resumeProgress++;
 		}
 
-		else if (CP_Input_KeyTriggered(info[infoProgress].keybind))
+		else if (quitProgress == 0 && CP_Input_KeyTriggered(info[infoProgress].keybind))
 		{
 			ResetWordColor(resume, RESUME, &resumeProgress, white);
 			ResetWordColor(restart, RESTART, &restartProgress, white);
