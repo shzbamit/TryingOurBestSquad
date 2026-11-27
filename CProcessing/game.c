@@ -30,6 +30,7 @@ CP_Image foreground;
 CP_Image scoreBoard;
 
 CP_Image nameInputField;
+CP_Image infoPage;
 
 // Colours
 #define BG_COLOUR					CP_Color_Create(247, 252, 252, 255) // Background
@@ -49,9 +50,11 @@ int restartProgress = 0;
 int resumeProgress = 0;
 static int quitProgress = 0;
 int pauseProgress = 0;
+static int infoProgress = 0;
 
 
 static int leaderboardUpdated = 0;
+static int infoVisible = 0;
 
 // Tracks whether the debug menu has been turned on or not
 // Can be used to disable certain features later, such as disabling highscore 
@@ -92,6 +95,8 @@ void Game_Init(void)
 
 	nameInputField = CP_Image_Load("Assets/name_input_field.png");
 
+	infoPage = CP_Image_Load("Assets/info.png");
+
 	myFont = CP_Font_Load("Assets/Exo2-Regular.ttf");
 
 	// Load sounds 
@@ -111,7 +116,7 @@ void Game_Init(void)
 
 	InitializeTimer();
 
-	
+	ResetWordColor(info, INFO, &infoProgress, white);
 
 	// Play music on loop: volume, pitch, looping, group
 	CP_Sound_PlayAdvanced(bgm, 0.4f, 1.0f, TRUE, CP_SOUND_GROUP_MUSIC);
@@ -550,36 +555,46 @@ void Game_Update(void)
 
 	if (confirmAction == CONFIRM_NONE && enteredName && (isPaused || gameEnd == 1))
 	{
-		if (restartProgress  <= 4 && resumeProgress <= 4 && CP_Input_KeyTriggered(restart[restartProgress].keybind) && CP_Input_KeyTriggered(resume[resumeProgress].keybind))
-		//if (restartProgress <= 4 && CP_Input_KeyTriggered(restart[restartProgress].keybind)) // to test without resume
-		{
+		if ((restartProgress <= 3 && resumeProgress <= 3) && (CP_Input_KeyTriggered(resume[resumeProgress].keybind) || CP_Input_KeyTriggered(restart[restartProgress].keybind))) {
 			ResetWordColor(quit, 4, &quitProgress, white); //resets quit 
+			ResetWordColor(info, INFO, &infoProgress, white);
+			resume[resumeProgress].r = 0;
+			resume[resumeProgress].b = 0;
 			restart[restartProgress].r = 0;
 			restart[restartProgress].b = 0;
-			resume[restartProgress].r = 0;
-			resume[restartProgress].b = 0;
 			restartProgress++;
 			resumeProgress++;
+		}
+
+		else if (CP_Input_KeyTriggered(info[infoProgress].keybind))
+		{
+			ResetWordColor(resume, RESUME, &resumeProgress, white);
+			ResetWordColor(restart, RESTART, &restartProgress, white);
+			ResetWordColor(quit, QUIT, &quitProgress, white);
+			info[infoProgress].r = 0;
+			info[infoProgress].b = 0;
+			infoProgress++;
 		}
 
 		else if (CP_Input_KeyTriggered(quit[quitProgress].keybind))
 		{
 			ResetWordColor(resume, RESUME, &resumeProgress, white); 
-			ResetWordColor(restart, 7, &restartProgress, white);
+			ResetWordColor(restart, RESTART, &restartProgress, white);
+			ResetWordColor(info, INFO, &infoProgress, white);
 			quit[quitProgress].g = 0;
 			quit[quitProgress].b = 0;
 			quitProgress++;
 		}
 
-		else if (resumeProgress > 4 && CP_Input_KeyTriggered(resume[resumeProgress].keybind))
+		else if (resumeProgress > 3 && CP_Input_KeyTriggered(resume[resumeProgress].keybind))
 		{
-			ResetWordColor(restart, 7, &restartProgress, white);
+			ResetWordColor(restart, RESTART, &restartProgress, white);
 			resume[resumeProgress].r = 0;
 			resume[resumeProgress].b = 0;
 			resumeProgress++;
 		}
 
-		else if (restartProgress > 4 && CP_Input_KeyTriggered(restart[restartProgress].keybind))
+		else if (restartProgress > 3 && CP_Input_KeyTriggered(restart[restartProgress].keybind))
 		{
 			ResetWordColor(resume, RESUME, &resumeProgress, white);
 			restart[restartProgress].r = 0;
@@ -587,40 +602,36 @@ void Game_Update(void)
 			restartProgress++;
 		}
 
-
 		else
 		{
-			WrongKey(restart, 7, &restartProgress, white);
-			WrongKey(quit, 4, &quitProgress, white);
+			WrongKey(restart, RESTART, &restartProgress, white);
+			WrongKey(quit, QUIT, &quitProgress, white);
 			WrongKey(resume, RESUME, &resumeProgress, white);
+			WrongKey(info, INFO, &infoProgress, white);
 		}
 	}
-	if (restartProgress == 3)
-	{
-		ResetWordColor(resume, RESUME, &resumeProgress, white); //resets resume
-	}
 
-	if (resumeProgress == 3)
+	if (restartProgress == RESTART)
 	{
-		ResetWordColor(restart, RESTART, &restartProgress, white); //resets resume
-	}
-
-	if (restartProgress == 7)
-	{
-		ResetWordColor(restart, 7, &restartProgress, white);
+		ResetWordColor(restart, RESTART, &restartProgress, white);
 		confirmAction = CONFIRM_RESTART;   // ask first
 	}
 
-	if (quitProgress == 4)
+	if (quitProgress == QUIT)
 	{
-		ResetWordColor(quit, 4, &quitProgress, white);
+		ResetWordColor(quit, QUIT, &quitProgress, white);
 		confirmAction = CONFIRM_QUIT;      // ask first
 	}
 
-	if (resumeProgress == 6)
+	if (resumeProgress == RESUME)
 	{
-		resumeProgress = 0;
+		ResetWordColor(resume, RESUME, &resumeProgress, white);
 		isPaused = !isPaused;
+	}
+
+	if (infoProgress == INFO)
+	{
+		infoVisible = 1;
 	}
 
 	if (isPaused && gameEnd == 0)
@@ -693,6 +704,17 @@ void Game_Update(void)
 			}
 		}
 	}
+
+	if (infoVisible)
+	{
+		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 100));
+		CP_Graphics_DrawRect(800.0f, 450.0f, 1600.0f, 900.0f);
+		CP_Image_Draw(infoPage, 800.0f, 450.0f, 850.0f, 850.0f, 255);
+		if (CP_Input_KeyTriggered(KEY_X)) {
+			infoVisible = 0;
+			ResetWordColor(info, INFO, &infoProgress, white);
+		}
+	}
 }
 
 void Game_Exit(void)
@@ -718,6 +740,7 @@ void Game_Exit(void)
 	CP_Image_Free(foreground);
 	CP_Image_Free(scoreBoard);
 	CP_Image_Free(nameInputField);
+	CP_Image_Free(infoPage);
 
 	for (int i = 0; i < NUM_CHARACTER_ASSETS; i++)
 	{

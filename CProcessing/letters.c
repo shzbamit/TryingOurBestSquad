@@ -1,6 +1,7 @@
 #include "letters.h"
 float x_position = 700;
 float y_position = 480;
+float y_position_end = 580;
 float endX_position = 1050;
 float r_x_position = 740;
 struct LetterState start[START];
@@ -65,11 +66,11 @@ void CreditBack(float x, float y)
 void endScreen(void)
 {
 	//Restart text
-	GenerateLetters(restart, RESTART, endX_position + 40, y_position, 35, 100,1);
+	GenerateLetters(restart, RESTART, endX_position + 40, y_position_end, 35, 100,1);
 	
 
 	//Quit text
-	GenerateLetters(quit, QUIT, endX_position + 100, y_position + 60, 40, 100,1);
+	GenerateLetters(quit, QUIT, endX_position + 100, y_position_end + 60, 40, 100,1);
 }
 
 void GenerateLetters(struct LetterState arr[], int size, float position_x, float position_y, float spacing, float fontSize, int gameScreen)
@@ -131,15 +132,19 @@ void pauseScreen(void)
 	GenerateLetters(resume, 6, r_x_position, 490.0f, 13.5, 25.0, 0);
 
 	CP_Settings_TextSize(25.0f);
-	GenerateLetters(quit, 4, r_x_position + 28 , 530.0f, 14, 25.0,0);
-	CP_Font_DrawText("Type            to quit", 790.0, 530.0f);
+	CP_Font_DrawText("Type            for info", 790.0, 530.0f);
+	GenerateLetters(info, 4, r_x_position + 22, 530.0f, 14, 25.0, 0);
+
+	CP_Settings_TextSize(25.0f);
+	GenerateLetters(quit, 4, r_x_position + 28 , 570.0f, 14, 25.0,0);
+	CP_Font_DrawText("Type            to quit", 790.0, 570.0f);
 
 	// RESTART option: "type" + letters + "to restart", all left-aligned
 	CP_Settings_TextSize(25.0f);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
 
 	float lineX = 630.0f;   // left edge of the whole line
-	float lineY = 570.0f;
+	float lineY = 610.0f;
 
 	CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
 	CP_Font_DrawText("Type", lineX, lineY);
