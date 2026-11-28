@@ -14,6 +14,7 @@ struct LetterState back[BACK];
 struct LetterState confirmYes[3];
 struct LetterState confirmNo[2];
 struct LetterState info[INFO];
+struct LetterState menu[MENU];
 
 //detects which key is being pressed if it does not match the struct array
 void WrongKey(struct LetterState arr[], int size, int* progress, int color)
@@ -139,6 +140,10 @@ void pauseScreen(void)
 	GenerateLetters(quit, 4, r_x_position + 28 , 570.0f, 14, 25.0,0);
 	CP_Font_DrawText("Type            to quit", 790.0, 570.0f);
 
+	CP_Settings_TextSize(25.0f);
+	GenerateLetters(menu, MENU, r_x_position - 15 , 650.0f, 14, 25.0, 0);
+	CP_Font_DrawText("Type               to go main menu", 800.0, 650.0f);
+
 	// RESTART option: "type" + letters + "to restart", all left-aligned
 	CP_Settings_TextSize(25.0f);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
@@ -208,7 +213,8 @@ void confirmScreen(const char* message)
 	CP_Font_DrawText("- no, go back", 720.0f, 530.0f);
 }
 
-void gameStructInitialization()
+//used in game 
+void gameStructInitialization() 
 {
 	resume[0] = (struct LetterState){'R', 255,255,255,KEY_R};
 	resume[1] = (struct LetterState){ 'E',255,255,255,KEY_E};
@@ -242,4 +248,10 @@ void gameStructInitialization()
 	pause[2] = (struct LetterState){ 'U', 128,128,128,KEY_U };
 	pause[3] = (struct LetterState){ 'S', 128,128,128,KEY_S };
 	pause[4] = (struct LetterState){ 'E', 128,128,128,KEY_E };
+
+	menu[0] = (struct LetterState){ 'M', 255,255,255,KEY_M };
+	menu[1] = (struct LetterState){ 'E', 255,255,255,KEY_E };
+	menu[2] = (struct LetterState){ 'N', 255,255,255,KEY_N };
+	menu[3] = (struct LetterState){ 'U', 255,255,255,KEY_U };
+
 }

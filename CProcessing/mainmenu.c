@@ -32,15 +32,20 @@ float splashScreenTimer = 0.0f; // For tracking how much time has passed in spla
 int isSplashScreen = 1; // Boolean
 
 CP_Image digipenLogo;
+CP_Image mainMenuImage;
 #define DIGIPEN_LOGO_W 500.0f
 #define DIGIPEN_LOGO_H 225.0f
+
 
 const char copyrightText[] = { "All content © 2026 DigiPen Institute of Technology Singapore. All Rights Reserved." };
 #define COPYRIGHT_TEXT_POS_Y (CENTER_Y + 200.0f)
 #define COPYRIGHT_TEXT_SIZE 30.0f
 
 char teamLogo[] = { "TryingOurBestSquad!" }; // Replace with logo if we make one
-#define TEAM_LOGO_SIZE 150.0f
+#define TEAM_LOGO_SIZE 50.0f
+
+CP_Image gameLogo;
+#define GAME_LOGO_SIZE 700.0f
 
 int creditsVisible = 0;
 #define CREDITS_BOX_W 1400.0f
@@ -105,6 +110,8 @@ int infoVisible = 0;
 
 void Main_Menu_Init(void)
 {
+	mainMenuImage = CP_Image_Load("Assets/main.jpg");
+	gameLogo = CP_Image_Load("Assets/logo.png");
 	myFont = CP_Font_Load("Assets/Exo2-Regular.ttf");
 	digipenLogo = CP_Image_Load("Assets/DigiPen_Singapore_WEB_RED.png");
 	infoPage = CP_Image_Load("Assets/info.png");
@@ -137,6 +144,13 @@ void Main_Menu_Init(void)
 	info[1] = (struct LetterState){ 'N', 0, 0, 0, KEY_N };
 	info[2] = (struct LetterState){ 'F', 0, 0, 0, KEY_F };
 	info[3] = (struct LetterState){ 'O', 0, 0, 0, KEY_O };
+
+	//initialize the progress for when the player comes back
+	startProgress = 0; 
+	quitProgress = 0; 
+	creditsProgress = 0;
+	backProgress = 0; 
+	infoProgress = 0; 
 }
 
 void Main_Menu_Update(void)
@@ -159,7 +173,8 @@ void Main_Menu_Update(void)
 			CP_Settings_Fill(CP_Color_Create(255, 255, 255, (int)(255.0f * (splashScreenTimer - (SPLASH_SCREEN_TIME / 2.0f))))); // White, fades in
 			CP_Settings_TextSize(TEAM_LOGO_SIZE);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-			CP_Font_DrawText(teamLogo, CENTER_X, CENTER_Y);
+			CP_Font_DrawText(teamLogo, CENTER_X, CENTER_Y + 350);
+			CP_Image_Draw(gameLogo, CENTER_X, CENTER_Y, GAME_LOGO_SIZE, GAME_LOGO_SIZE, (int)(255.0f * (splashScreenTimer - (SPLASH_SCREEN_TIME / 2.0f))));
 		}
 		else
 		{
@@ -232,17 +247,17 @@ void Main_Menu_Update(void)
 	if (!isSplashScreen && !creditsVisible) // Main Menu Screen
 	{
 		CP_Graphics_ClearBackground(WHITE_COLOUR);
+		CP_Image_Draw(mainMenuImage, CP_System_GetWindowWidth() / 2, CP_System_GetWindowHeight() / 2, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
 		InitializeLetters(); //Initialize start and quit
 
 		//Render Title of game
 		CP_Settings_Fill(BLACK_COLOUR);
 		CP_Settings_TextSize(150.0f);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Font_DrawText("Type Off!:", text_TypeOff_x, text_TypeOff_y);
-		CP_Font_DrawText("Kitchen Rush", text_TypeOff_x - 100, text_TypeOff_y + 150);
 
 		CP_Settings_TextSize(60.0f);
 		CP_Font_DrawText("Type :)", 500, 480);
+
 
 		if (CP_Input_KeyTriggered(start[startProgress].keybind) && !CP_Input_KeyTriggered(credits[creditsProgress].keybind))
 		{
@@ -324,7 +339,9 @@ void Main_Menu_Update(void)
 
 void Main_Menu_Exit(void)
 {
+	CP_Image_Free(gameLogo);
 	CP_Font_Free(myFont);
 	CP_Image_Free(digipenLogo);
 	CP_Image_Free(infoPage);
+	CP_Image_Free(mainMenuImage);
 }

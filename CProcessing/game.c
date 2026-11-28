@@ -15,6 +15,7 @@
 #include "score.h"
 #include "timer.h"
 #include "debug.h"
+#include "mainmenu.h"
 
 // Assets
 CP_Font myFont;
@@ -51,6 +52,7 @@ int resumeProgress = 0;
 static int quitProgress = 0;
 int pauseProgress = 0;
 static int infoProgress = 0;
+int menuProgress = 0;
 
 
 static int leaderboardUpdated = 0;
@@ -391,7 +393,7 @@ void Game_Update(void)
 		WrongKey(pause, PAUSE, &pauseProgress, grey);
 	}
 
-	if(!isPaused && gameEnd == 0 && enteredName && confirmAction == CONFIRM_NONE) {
+	if(!isPaused && gameEnd == 0 && enteredName && confirmAction == CONFIRM_NONE && pauseProgress == 0) {
 		// Controls for making the sandwich
 		MakeSandwich(customerCount);
 
@@ -557,6 +559,7 @@ void Game_Update(void)
 	{
 		if ((restartProgress <= 3 && resumeProgress <= 3) && (CP_Input_KeyTriggered(resume[resumeProgress].keybind) || CP_Input_KeyTriggered(restart[restartProgress].keybind))) {
 			ResetWordColor(quit, 4, &quitProgress, white); //resets quit 
+			ResetWordColor(menu, MENU, &menuProgress, white);
 			ResetWordColor(info, INFO, &infoProgress, white);
 			resume[resumeProgress].r = 0;
 			resume[resumeProgress].b = 0;
@@ -571,6 +574,7 @@ void Game_Update(void)
 			ResetWordColor(resume, RESUME, &resumeProgress, white);
 			ResetWordColor(restart, RESTART, &restartProgress, white);
 			ResetWordColor(quit, QUIT, &quitProgress, white);
+			ResetWordColor(menu, MENU, &menuProgress, white);
 			info[infoProgress].r = 0;
 			info[infoProgress].b = 0;
 			infoProgress++;
@@ -581,6 +585,7 @@ void Game_Update(void)
 			ResetWordColor(resume, RESUME, &resumeProgress, white); 
 			ResetWordColor(restart, RESTART, &restartProgress, white);
 			ResetWordColor(info, INFO, &infoProgress, white);
+			ResetWordColor(menu, MENU, &menuProgress, white);
 			quit[quitProgress].g = 0;
 			quit[quitProgress].b = 0;
 			quitProgress++;
@@ -602,8 +607,20 @@ void Game_Update(void)
 			restartProgress++;
 		}
 
+		else if (CP_Input_KeyTriggered(menu[menuProgress].keybind) && gameEnd == 0)
+		{
+			ResetWordColor(resume, RESUME, &resumeProgress, white);
+			ResetWordColor(restart, RESTART, &restartProgress, white);
+			ResetWordColor(quit, QUIT, &quitProgress, white);
+			ResetWordColor(info, INFO, &infoProgress, white);
+			menu[menuProgress].r = 0;
+			menu[menuProgress].b = 0;
+			menuProgress++;
+		}
+
 		else
 		{
+			WrongKey(menu, MENU, &menuProgress, white);
 			WrongKey(restart, RESTART, &restartProgress, white);
 			WrongKey(quit, QUIT, &quitProgress, white);
 			WrongKey(resume, RESUME, &resumeProgress, white);
@@ -632,6 +649,12 @@ void Game_Update(void)
 	if (infoProgress == INFO)
 	{
 		infoVisible = 1;
+	}
+
+	if (menuProgress == MENU)
+	{
+		ResetWordColor(menu, MENU, &menuProgress, white);
+		confirmAction = CONFIRM_MENU;
 	}
 
 	if (isPaused && gameEnd == 0)
@@ -701,6 +724,19 @@ void Game_Update(void)
 			else if (action == CONFIRM_QUIT)
 			{
 				CP_Engine_Terminate();
+			}
+			else if (action == CONFIRM_MENU)
+			{
+				while (sandwichOrder > 0)
+				{
+					RemoveIngredient();
+					sandwichOrder--;
+				}
+				gameEnd = 0;
+				isPaused = 0;
+				score = 0;
+				ResetStreak();
+				CP_Engine_SetNextGameState(Main_Menu_Init, Main_Menu_Update, Main_Menu_Exit);
 			}
 		}
 	}
