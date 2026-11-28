@@ -546,7 +546,10 @@ void Game_Update(void)
 			CP_Font_DrawText("Skill Issue lol", 800.0f, 240.0f);
 		}
 
-		RenderScore();
+		CP_Settings_TextSize(100.0f);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+		CP_Font_DrawText("Your Score:", 1200.0f, 350.0f);
+		CP_Font_DrawText(scoreText, 1200.0f, 450.0f);
 
 		DrawLeaderboard();
 
