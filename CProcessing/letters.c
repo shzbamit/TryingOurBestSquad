@@ -64,7 +64,7 @@ void CreditBack(float x, float y)
 	GenerateLetters(back, BACK, x, y, 15.0, 20,0);
 }
 
-void endScreen(void)
+void EndScreen(void)
 {
 	//Restart text
 	GenerateLetters(restart, RESTART, endX_position + 40, y_position_end, 35, 100,1);
@@ -117,7 +117,7 @@ void GameScreenOptions(void)
 	GenerateLetters(pause, PAUSE, 110, 50, 20, 40, 0);
 }
 
-void pauseScreen(void)
+void PauseScreen(void)
 {
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 150));
 	CP_Graphics_DrawRect(0.0f, 0.0f, 1600.0f, 900.0f);
@@ -183,7 +183,7 @@ static void DrawTypedWord(struct LetterState arr[], int size, float x, float y)
 }
 
 // Confirmation dialog: dark box, a question, and YES / NO to type
-void confirmScreen(const char* message)
+void ConfirmScreen(const char* message)
 {
 	CP_Settings_RectMode(CP_POSITION_CORNER);
 	CP_Settings_NoStroke();
@@ -214,7 +214,7 @@ void confirmScreen(const char* message)
 }
 
 //used in game 
-void gameStructInitialization() 
+void GameStructInitialization() 
 {
 	resume[0] = (struct LetterState){'R', 255,255,255,KEY_R};
 	resume[1] = (struct LetterState){ 'E',255,255,255,KEY_E};

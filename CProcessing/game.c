@@ -74,7 +74,7 @@ void Game_Init(void)
 	leaderboardUpdated = 0; // Reset leaderboard update state
 
 	// Load game menu structs
-	gameStructInitialization();
+	GameStructInitialization();
 
 	// Load Assets
 	InitializeIngredientList();
@@ -553,7 +553,7 @@ void Game_Update(void)
 
 		DrawLeaderboard();
 
-		endScreen();
+		EndScreen();
 	}
 
 	if (confirmAction == CONFIRM_NONE && enteredName && (isPaused || gameEnd == 1))
@@ -660,7 +660,7 @@ void Game_Update(void)
 
 	if (isPaused && gameEnd == 0)
 	{
-		pauseScreen();
+		PauseScreen();
 
 		if (confirmAction == CONFIRM_NONE && CP_Input_KeyTriggered(KEY_ESCAPE))
 		{
@@ -675,7 +675,7 @@ void Game_Update(void)
 		else if (confirmAction == CONFIRM_QUIT) msg = "Exit the game?";
 		else if (confirmAction == CONFIRM_MENU) msg = "Go back to main menu?";
 
-		confirmScreen(msg);
+		ConfirmScreen(msg);
 
 		if (CP_Input_KeyTriggered(confirmYes[yesProgress].keybind))
 		{

@@ -23,12 +23,12 @@ extern struct LetterState pause[PAUSE];
 extern struct LetterState info[INFO];
 extern struct LetterState menu[MENU];
 
-void confirmScreen(const char* message);
-void gameStructInitialization(void);
+void ConfirmScreen(const char* message);
+void GameStructInitialization(void);
 void InitializeLetters(void);
 void CreditBack(float x, float y);
-void endScreen(void);
-void pauseScreen(void);
+void EndScreen(void);
+void PauseScreen(void);
 void GameScreenOptions(void);
 void GenerateLetters(struct LetterState arr[], int size, float position_x, float position_y, float spacing, float fontSize, int gameScreen);
 void ResetWordColor(struct LetterState arr[], int size, int* progress, int color);
