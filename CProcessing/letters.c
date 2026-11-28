@@ -84,17 +84,17 @@ void GenerateLetters(struct LetterState arr[], int size, float position_x, float
 		{
 			if (fontSize < 30 || gameScreen == 1 )
 			{
-				position_x -= spacing / 2.5;
+				position_x -= spacing / 2.5f;
 				CP_Settings_Fill(CP_Color_Create(arr[i].r, arr[i].g, arr[i].b, 255));
 				CP_Font_DrawText(text, (float)(position_x + i * spacing), position_y);
-				position_x -= spacing / 2.5;
+				position_x -= spacing / 2.5f;
 			}
 
 			else if (fontSize >= 30)
 			{
 				CP_Settings_Fill(CP_Color_Create(arr[i].r, arr[i].g, arr[i].b, 255));
 				CP_Font_DrawText(text, (float)(position_x + i * spacing), position_y);
-				position_x -= spacing / 1.5;
+				position_x -= spacing / 1.5f;
 			}
 
 			

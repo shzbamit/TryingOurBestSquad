@@ -1,5 +1,6 @@
 #include <cprocessing.h>
 #include "score.h"
+#include <stdio.h>
 
 int score = 0;								// Tracks actual score
 int displayScore = 0;						// For setting the display score
