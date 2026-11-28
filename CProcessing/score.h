@@ -25,6 +25,7 @@ void InitializeScore(void);
 void PushScoreList(int amount);
 void RenderScoreList(void);
 void UpdateScoreCounter(void);
+void RenderScoreStreak(void);
 void RenderScore(void);
 
 void OnCustomerServed(int basePoints); 

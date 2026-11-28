@@ -229,14 +229,9 @@ void UpdateScoreCounter(void)
     }
 }
 
-void RenderScore(void)
+void RenderScoreStreak(void)
 {
-    // Score text
-    CP_Settings_Fill(SCORE_TEXT_COLOR);
-    CP_Settings_TextSize(SCORE_TEXT_SIZE);
-    CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_RIGHT, CP_TEXT_ALIGN_V_BASELINE);
-
-    CP_Font_DrawText(scoreText, SCORE_TEXT_POS_X, SCORE_TEXT_POS_Y);
+    RenderScore();
 
     // Streak text
     if (streak >= 2)
@@ -252,4 +247,14 @@ void RenderScore(void)
 
     // Renders the history list array from top to bottom
     RenderScoreList();
+}
+
+void RenderScore(void)
+{
+    // Score text
+    CP_Settings_Fill(SCORE_TEXT_COLOR);
+    CP_Settings_TextSize(SCORE_TEXT_SIZE);
+    CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_RIGHT, CP_TEXT_ALIGN_V_BASELINE);
+
+    CP_Font_DrawText(scoreText, SCORE_TEXT_POS_X, SCORE_TEXT_POS_Y);
 }
