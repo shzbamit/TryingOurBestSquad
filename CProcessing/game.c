@@ -377,7 +377,10 @@ void Game_Update(void)
 	// Updates physics positions and prints all falling discarded ingredients
 	UpdateAndRenderDiscards();
 
-	debugEnabled = AllowDebug(); // Allow capturing debug key input to debug
+	if (enteredName && !isPaused && !gameEnd)
+	{
+		debugEnabled = AllowDebug(); // Allow capturing debug key input to debug
+	}
 
 	// End of asset renders =====================================================================================================================
 	if (CP_Input_KeyTriggered(pause[pauseProgress].keybind) && !isPaused && gameEnd == 0 && enteredName == 1)
