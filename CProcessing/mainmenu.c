@@ -247,7 +247,7 @@ void Main_Menu_Update(void)
 	if (!isSplashScreen && !creditsVisible) // Main Menu Screen
 	{
 		CP_Graphics_ClearBackground(WHITE_COLOUR);
-		CP_Image_Draw(mainMenuImage, CP_System_GetWindowWidth() / 2, CP_System_GetWindowHeight() / 2, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
+		CP_Image_Draw(mainMenuImage, CP_System_GetWindowWidth() / 2.0, CP_System_GetWindowHeight() / 2.0, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
 		InitializeLetters(); //Initialize start and quit
 
 		//Render Title of game

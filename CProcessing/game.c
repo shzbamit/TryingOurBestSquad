@@ -54,7 +54,6 @@ int pauseProgress = 0;
 static int infoProgress = 0;
 int menuProgress = 0;
 
-
 static int leaderboardUpdated = 0;
 static int infoVisible = 0;
 
@@ -145,7 +144,7 @@ void Game_Update(void)
 
 	// Render game assets here ==========================================================================================================
 
-	CP_Image_Draw(background, CP_System_GetWindowWidth() / 2, CP_System_GetWindowHeight() / 2, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
+	CP_Image_Draw(background, WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 255);
 
 	// Display all customer orders
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
@@ -261,8 +260,8 @@ void Game_Update(void)
 			i--;
 		}
 	}
-	CP_Image_Draw(foreground, CP_System_GetWindowWidth() / 2, CP_System_GetWindowHeight() / 2, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
-	CP_Image_Draw(scoreBoard, (CP_System_GetWindowWidth() / 2) - 100, CP_System_GetWindowHeight() / 2, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
+	CP_Image_Draw(foreground, WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 255);
+	CP_Image_Draw(scoreBoard, (WINDOW_WIDTH / 2.0f) - 100.0f, WINDOW_HEIGHT / 2.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 255);
 
 	GameScreenOptions();
 	// Draw the customer orders
